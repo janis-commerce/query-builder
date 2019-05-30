@@ -1,0 +1,34 @@
+{
+  "name": "@janiscommerce/query-builder",
+  "version": "1.0.0",
+  "description": "Prepare and execute SELECT Query in the database.",
+  "main": ".eslintrc.js",
+  "scripts": {
+    "test": "export TEST_ENV=true; mocha --exit -R nyan --recursive tests/",
+    "watch-test": "export TEST_ENV=true; mocha --exit -R nyan -w --recursive",
+    "test-ci": "nyc --reporter=html --reporter=text mocha --recursive tests/",
+    "coverage": "nyc npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/janis-commerce/query-builder.git"
+  },
+  "keywords": [],
+  "author": "Janis",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/janis-commerce/query-builder/issues"
+  },
+  "homepage": "https://github.com/janis-commerce/query-builder#readme",
+  "dependencies": {
+    "@janiscommerce/logger": "^1.0.2"
+  },
+  "devDependencies": {
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "mocha": "^5.2.0",
+    "nyc": "^14.1.0",
+    "sinon": "^7.3.2"
+  }
+}
