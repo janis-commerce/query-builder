@@ -31,6 +31,14 @@ npm install @janiscommerce/query-builder
     
     Returns a `Promise` with the results of execution in the database.
 
+## Select All fields
+
+If `parametres` is an empty object in the constructor the query will be
+
+```
+select `t`.* from `table` as `t`
+```
+
 ## Specific Fields
 
 If you want to return a specficic field in the query, you must define de *key* **fields** in the constructor as ´parametres´.
@@ -44,6 +52,8 @@ const params = {
     fields: ['some','field','other']
 }
 ```
+
+If `fields` is `false`, is like select all fields.
 
 ## Special Functions
 
