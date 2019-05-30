@@ -55,6 +55,12 @@ class QueryBuilder {
 		return ['=', '!='];
 	}
 
+	/**
+	 * Query Builder Constructor
+	 * @param {*} knex Knex instance
+	 * @param {*} model Model
+	 * @param {*} params Parametres
+	 */
 	constructor(knex, model, params) {
 
 		this.knex = knex;
