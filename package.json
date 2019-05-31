@@ -2,7 +2,7 @@
   "name": "@janiscommerce/query-builder",
   "version": "1.0.0",
   "description": "Prepare and execute SELECT Query in the database.",
-  "main": ".eslintrc.js",
+  "main": "index.js",
   "scripts": {
     "test": "export TEST_ENV=true; mocha --exit -R nyan --recursive tests/",
     "watch-test": "export TEST_ENV=true; mocha --exit -R nyan -w --recursive",
