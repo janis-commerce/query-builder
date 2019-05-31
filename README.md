@@ -1,7 +1,7 @@
 # Query Builder
 
-[![Build Status](https://travis-ci.org/janis-commerce/query-builder.svg?branch=master)](https://travis-ci.org/janis-commerce/query-builder)
-[![Coverage Status](https://coveralls.io/repos/github/janis-commerce/query-builder/badge.svg?branch=master)](https://coveralls.io/github/janis-commerce/query-builder?branch=master)
+[![Build Status](https://travis-ci.org/janis-commerce/query-builder.svg?JCN-70-query-builder)](https://travis-ci.org/janis-commerce/query-builder)
+[![Coverage Status](https://coveralls.io/repos/github/janis-commerce/query-builder/badge.svg?branch=JCN-70-query-builder)](https://coveralls.io/github/janis-commerce/query-builder?branch=master)
 
 Prepare and execute SELECT Query in a SQL database.
 
