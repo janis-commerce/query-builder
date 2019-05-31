@@ -48,7 +48,7 @@ If it's empty, it select all fields in the table. By default **Query Builder** a
 ```javascript
 const query = new QueryBuilder(knex,someModel,{});
 query.build();
-const results = query.execute();
+const results = await query.execute();
 ```
 
 The Query is:
@@ -66,7 +66,7 @@ const parametres = {
 
 const query = new QueryBuilder(knex,someModel,parametres);
 query.build();
-const results = query.execute();
+const results = await query.execute();
 ```
 
 The query is: 
@@ -90,7 +90,7 @@ const parametres = {
 
 const query = new QueryBuilder(knex,someModel,parametres);
 query.build();
-const results = query.execute();
+const results = await query.execute();
 ```
 
 The query is :
@@ -120,7 +120,7 @@ It's posible add special functions in the queries, as a *key* in `parametres` ob
 
     const query = new QueryBuilder(knex,someModel,parametres);
     query.build();
-    const results = query.execute();
+    const results = await query.execute();
     
     ```
 
@@ -138,7 +138,7 @@ It's posible add special functions in the queries, as a *key* in `parametres` ob
 
     const query = new QueryBuilder(knex,someModel,parametres);
     query.build();
-    const results = query.execute();
+    const results = await query.execute();
     ```
 
     The query is :
@@ -159,7 +159,7 @@ It's posible add special functions in the queries, as a *key* in `parametres` ob
 
     const query = new QueryBuilder(knex,someModel,parametres);
     query.build();
-    const results = query.execute();
+    const results = await query.execute();
     ```
 
     The query is :
@@ -201,7 +201,7 @@ To filter by fields use `filters` as *key* and an `object` or an `Array` of them
 
     const query = new QueryBuilder(knex,someModel,parametres);
     query.build();
-    const results = query.execute();
+    const results = await query.execute();
     ```
 
     The query is :
@@ -222,7 +222,7 @@ To filter by fields use `filters` as *key* and an `object` or an `Array` of them
 
     const query = new QueryBuilder(knex,someModel,parametres);
     query.build();
-    const results = query.execute();
+    const results = await query.execute();
     ```
 
     The query is :
@@ -242,7 +242,7 @@ To filter by fields use `filters` as *key* and an `object` or an `Array` of them
 
     const query = new QueryBuilder(knex,someModel,parametres);
     query.build();
-    const results = query.execute();
+    const results = await query.execute();
     ```
 
     The query is :
@@ -266,7 +266,7 @@ To filter by fields use `filters` as *key* and an `object` or an `Array` of them
 
     const query = new QueryBuilder(knex,someModel,parametres);
     query.build();
-    const results = query.execute();
+    const results = await query.execute();
     ```
 
     The query is :
@@ -310,7 +310,7 @@ Use `type` key in the `filter` object with some of these:
 
     const query = new QueryBuilder(knex,someModel,parametres);
     query.build();
-    const results = query.execute();
+    const results = await query.execute();
     ```
 
     The query is :
@@ -333,7 +333,7 @@ Use `type` key in the `filter` object with some of these:
 
     const query = new QueryBuilder(knex,someModel,parametres);
     query.build();
-    const results = query.execute();
+    const results = await query.execute();
     ```
 
     The query is :
@@ -355,7 +355,7 @@ Use `type` key in the `filter` object with some of these:
 
     const query = new QueryBuilder(knex,someModel,parametres);
     query.build();
-    const results = query.execute();
+    const results = await query.execute();
     ```
 
     The query is :
@@ -377,7 +377,7 @@ Use `type` key in the `filter` object with some of these:
 
     const query = new QueryBuilder(knex,someModel,parametres);
     query.build();
-    const results = query.execute();
+    const results = await query.execute();
     ```
 
     The query is :
@@ -399,7 +399,7 @@ Use `type` key in the `filter` object with some of these:
 
     const query = new QueryBuilder(knex,someModel,parametres);
     query.build();
-    const results = query.execute();
+    const results = await query.execute();
     ```
 
     The query is :
@@ -421,7 +421,7 @@ Use `type` key in the `filter` object with some of these:
 
     const query = new QueryBuilder(knex,someModel,parametres);
     query.build();
-    const results = query.execute();
+    const results = await query.execute();
     ```
 
     The query is :
@@ -443,7 +443,7 @@ Use `type` key in the `filter` object with some of these:
 
     const query = new QueryBuilder(knex,someModel,parametres);
     query.build();
-    const results = query.execute();
+    const results = await query.execute();
     ```
 
     The query is :
@@ -465,7 +465,7 @@ Use `type` key in the `filter` object with some of these:
 
     const query = new QueryBuilder(knex,someModel,parametres);
     query.build();
-    const results = query.execute();
+    const results = await query.execute();
     ```
 
     The query is :
@@ -487,7 +487,7 @@ Use `type` key in the `filter` object with some of these:
 
     const query = new QueryBuilder(knex,someModel,parametres);
     query.build();
-    const results = query.execute();
+    const results = await query.execute();
     ```
 
     The query is :
@@ -509,7 +509,7 @@ Use `type` key in the `filter` object with some of these:
 
     const query = new QueryBuilder(knex,someModel,parametres);
     query.build();
-    const results = query.execute();
+    const results = await query.execute();
     ```
 
     The query is :
@@ -531,7 +531,7 @@ Use `type` key in the `filter` object with some of these:
 
     const query = new QueryBuilder(knex,someModel,parametres);
     query.build();
-    const results = query.execute();
+    const results = await query.execute();
     ```
 
     The query is :
@@ -555,7 +555,7 @@ Use `group` *key* to group by fields. It's SQL equivalent to `GROUP BY`.
 
     const query = new QueryBuilder(knex,someModel,parametres);
     query.build();
-    const results = query.execute();
+    const results = await query.execute();
     ```
 
     The query is :
@@ -619,7 +619,7 @@ Use `order` *key* to group by fields. It's SQL equivalent to `ORDER BY`.
 
     const query = new QueryBuilder(knex,someModel,parametres);
     query.build();
-    const results = query.execute();
+    const results = await query.execute();
     ```
 
     The query is :
@@ -642,7 +642,7 @@ Use `order` *key* to group by fields. It's SQL equivalent to `ORDER BY`.
 
     const query = new QueryBuilder(knex,someModel,parametres);
     query.build();
-    const results = query.execute();
+    const results = await query.execute();
     ```
 
     The query is :
@@ -662,7 +662,7 @@ const parametres = {
 
 const query = new QueryBuilder(knex,someModel,parametres);
 query.build();
-const results = query.execute();
+const results = await query.execute();
 ```
 
 The query is :
@@ -687,7 +687,7 @@ const parametres = {
 
 const query = new QueryBuilder(knex,someModel,parametres);
 query.build();
-const results = query.execute();
+const results = await query.execute();
 ```
 
 The query is :
