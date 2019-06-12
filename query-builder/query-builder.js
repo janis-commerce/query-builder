@@ -57,12 +57,11 @@ class QueryBuilder {
 
 	/**
 	 * Query Builder Constructor
-	 * @param {*} knex Knex instance
-	 * @param {*} model Model
-	 * @param {*} params Parametres
+	 * @param {function} knex Knex instance Initializated
+	 * @param {class} model Class Model
+	 * @param {object} params Parametres
 	 */
-	constructor(knex, model, params) {
-
+	constructor(knex, model, params = {}) {
 		this.knex = knex;
 		this.model = model;
 
@@ -107,7 +106,6 @@ class QueryBuilder {
 	_init() {
 
 		const { table = this.table } = this.params;
-
 		this.knexStatement = this.knex({ t: this.model.addDbName(table) });
 		this.knexStatement.raw = this.knex.raw;
 	}
@@ -1107,6 +1105,166 @@ class QueryBuilder {
 	 */
 	async execute() {
 		return this.knexStatement;
+	}
+
+	// ***********************************************************************
+
+	/**
+	 * Initializes the Builder, creates the Knex Statement with table
+	 *
+	 */
+	_initInserts() {
+
+		this.knexStatement = this.knex(this.table);
+		this.knexStatement.raw = this.knex.raw;
+	}
+
+	/**
+	 * Creates a new Array of items with valid model fields
+	 * @param {Array<objects>} items Array of Objects
+	 */
+
+	_formatFields(items) {
+
+		const modelFields = Object.keys(this.fields);
+		return items.map(item => {
+
+			const time = (Date.now() / 1000 | 0);
+
+			const validFields = {};
+
+			modelFields.forEach(field => {
+				validFields[field] = item[field] || null;
+			});
+
+			if(!validFields.date_created)
+				validFields.date_created = item.date_created || time;
+
+			if(!validFields.date_modified)
+				validFields.date_modified = item.date_modified || time;
+
+			return validFields;
+
+		});
+	}
+
+	/**
+	 * Creates the String for Upserts, depends on Models fields
+	 */
+	_upsertFormatFields() {
+		const modelFields = Object.keys(this.fields);
+
+		if(!modelFields.includes('date_modified'))
+			modelFields.push('date_modified');
+
+		const duplicateKey = 'ON DUPLICATE KEY UPDATE \n';
+
+		const fields = modelFields.filter(element => element !== 'date_created').map(field => {
+			if(field === 'id')
+				return 'id = LAST_INSERT_ID(id)';
+			return `${field} = VALUES(${field})`;
+		});
+
+		return duplicateKey + fields.join(', \n');
+	}
+
+	/**
+	 * Insert into Database new elements
+	 * @param {Array<object>} items Array of Objects to insert
+	 */
+	async insert(items) {
+
+		this._initInserts();
+
+		// Check if Items is an Array
+		if(!items.length) {
+			// if it's not, but it's an individual element
+			if(typeof items === 'object')
+				items = [items];
+			else
+				throw new Error('Not valid items to Insert');
+		}
+		// Format Items to have valid fields
+		items = this._formatFields(items);
+
+		return this.knexStatement.insert(items).toString();
+
+	}
+
+	/**
+	 * Save into Database, with Upsert (if some element exist created a new one)
+	 * @param {Array<objects>} items Array of objects to save
+	 */
+
+	async save(items) {
+
+		this._initInserts();
+
+		// Check if Items is an Array
+		if(!items.length) {
+			// if it's not, but it's an individual element
+			if(typeof items === 'object')
+				items = [items];
+			else
+				throw new Error('Not valid items to Insert');
+		}
+		// Format Items to have valid fields
+		items = this._formatFields(items);
+
+		let query = this.knexStatement.insert(items).toString();
+
+		query += 'ON DUPLICATE KEY UPDATE ' + this.knexStatement.raw(this._upsertFormatFields());
+
+		return this.knexStatement.raw(query).toString();
+	}
+
+	_formatUpdate(values) {
+
+		const modelFields = Object.keys(this.fields);
+
+		const validFields = {};
+
+		modelFields.forEach(field => {
+			if(values[field])
+				validFields[`t.${field}`] = values[field];
+		});
+
+		return validFields;
+
+	}
+
+	async update(values, filters) {
+
+		if(typeof values !== 'object')
+			throw new Error('Not values to Change');
+
+		this._init();
+
+		this.params = {
+			filters
+		};
+
+		values = this._formatUpdate(values);
+
+		this.knexStatement = this.knexStatement.update(values);
+
+		this._buildFilters();
+
+		return this.knexStatement.toString();
+	}
+
+	async remove(filters) {
+
+		this._init();
+
+		this.params = {
+			filters
+		};
+		
+		this._buildFilters();
+		this.knexStatement = this.knexStatement.del();
+
+		return this.knexStatement.toString();
 	}
 
 }
