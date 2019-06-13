@@ -1290,6 +1290,7 @@ class QueryBuilder {
 		};
 		// Builds the Filters (Where)
 		this._buildFilters();
+		// JOINS PENDING
 		// Necesary to use Knex, otherwise fails.
 		const deleteQuereyRaw = this._changeQueryTableAlias(this.knexStatement.del().toString());
 
