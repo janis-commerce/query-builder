@@ -61,7 +61,7 @@ class QueryBuilder {
 	 * @param {class} model Class Model
 	 * @param {object} params Parametres
 	 */
-	constructor(knex, model, params = {}) {
+	constructor(knex, model) {
 		this.knex = knex;
 		this.model = model;
 
@@ -71,15 +71,13 @@ class QueryBuilder {
 		this.fields = model.constructor.fields;
 		this.flags = model.constructor.flags;
 		this.joins = model.constructor.joins;
-
-		this.params = params;
 	}
 
 	/**
 	 * Build query parameters
 	 *
 	 */
-	build() {
+	_build() {
 
 		this._init();
 
@@ -1099,21 +1097,21 @@ class QueryBuilder {
 	}
 
 	/**
-	 * Executes the Knex Statement
-	 *
-	 * @return {Promise} The promise
+	 * Search objets in the Database.
+	 * @param {objects} parametres Object with Parametres and filters
+	 * @return {Promise<Array>} Array of Objects in Database
 	 */
-	async execute() {
+	async get(parametres = {}) {
+
+		this.params = parametres;
+		this._build();
 		return this.knexStatement;
 	}
 
-	// ***********************************************************************
-
 	/**
-	 * Initializes the Builder, creates the Knex Statement with table
-	 *
+	 * Initializes Knex with the Table without Alias.
 	 */
-	_initInserts() {
+	_initWithoutAlias() {
 
 		this.knexStatement = this.knex(this.table);
 		this.knexStatement.raw = this.knex.raw;
@@ -1157,7 +1155,7 @@ class QueryBuilder {
 		if(!modelFields.includes('date_modified'))
 			modelFields.push('date_modified');
 
-		const duplicateKey = 'ON DUPLICATE KEY UPDATE \n';
+		const duplicateKey = 'ON DUPLICATE KEY UPDATE ';
 
 		const fields = modelFields.filter(element => element !== 'date_created').map(field => {
 			if(field === 'id')
@@ -1169,12 +1167,46 @@ class QueryBuilder {
 	}
 
 	/**
+	 * Format and filter Values to use in update.
+	 * @param {object} values
+	 * @returns {object}
+	 */
+	_formatUpdateValues(values) {
+
+		const modelFields = [...Object.keys(this.fields), 'date_modified'];
+		const valuesFields = Object.keys(values);
+
+		const validFields = {};
+
+		valuesFields.forEach(field => {
+			if(modelFields.includes(field))
+				validFields[`t.${field}`] = values[field];
+		});
+
+		return validFields;
+
+	}
+
+	/**
+	 * Change the table alias to another.
+	 * By Default changes `t` to model table name.
+	 * @param {String} queryToDelete Query with alias fields
+	 * @param {String} newName new Name, Default Model Table Name
+	 * @param {String} formerName Former Table Alias, Default 't'
+	 * @returns {String} Complete Query with the changes
+	 */
+	_changeQueryTableAlias(queryToChange, newName = this.table, formerName = 't') {
+		return queryToChange.replace(`\`${formerName}\``, `\`${newName}\``);
+	}
+
+	/**
 	 * Insert into Database new elements
 	 * @param {Array<object>} items Array of Objects to insert
+	 * @returns {Array} [0] si esta todo bien.
 	 */
 	async insert(items) {
 
-		this._initInserts();
+		this._initWithoutAlias();
 
 		// Check if Items is an Array
 		if(!items.length) {
@@ -1187,18 +1219,18 @@ class QueryBuilder {
 		// Format Items to have valid fields
 		items = this._formatFields(items);
 
-		return this.knexStatement.insert(items).toString();
+		return this.knexStatement.insert(items);
 
 	}
 
 	/**
 	 * Save into Database, with Upsert (if some element exist created a new one)
 	 * @param {Array<objects>} items Array of objects to save
+	 * @returns {Array<objects>} index 0: Results-Headers object
 	 */
-
 	async save(items) {
 
-		this._initInserts();
+		this._initWithoutAlias();
 
 		// Check if Items is an Array
 		if(!items.length) {
@@ -1213,26 +1245,17 @@ class QueryBuilder {
 
 		let query = this.knexStatement.insert(items).toString();
 
-		query += 'ON DUPLICATE KEY UPDATE ' + this.knexStatement.raw(this._upsertFormatFields());
+		query += this.knexStatement.raw(this._upsertFormatFields());
 
-		return this.knexStatement.raw(query).toString();
+		return this.knexStatement.raw(query);
 	}
 
-	_formatUpdate(values) {
-
-		const modelFields = Object.keys(this.fields);
-
-		const validFields = {};
-
-		modelFields.forEach(field => {
-			if(values[field])
-				validFields[`t.${field}`] = values[field];
-		});
-
-		return validFields;
-
-	}
-
+	/**
+	 * Update rows.
+	 * @param {object} values Values to change.
+	 * @param {object} filters Filters (Where).
+	 * @returns {Array<objects>} index 0: Results-Headers object
+	 */
 	async update(values, filters) {
 
 		if(typeof values !== 'object')
@@ -1244,27 +1267,33 @@ class QueryBuilder {
 			filters
 		};
 
-		values = this._formatUpdate(values);
+		values = this._formatUpdateValues(values);
 
 		this.knexStatement = this.knexStatement.update(values);
 
 		this._buildFilters();
 
-		return this.knexStatement.toString();
+		return this.knexStatement;
 	}
 
+	/**
+	 * Delete rows from Database.
+	 * @param {object} filters Object with filters. (Where)
+	 * @returns {Promise<Array>} Array of Objects, index 0: Results-Headers object
+	 */
 	async remove(filters) {
 
-		this._init();
+		this._initWithoutAlias();
 
 		this.params = {
 			filters
 		};
-		
+		// Builds the Filters (Where)
 		this._buildFilters();
-		this.knexStatement = this.knexStatement.del();
+		// Necesary to use Knex, otherwise fails.
+		const deleteQuereyRaw = this._changeQueryTableAlias(this.knexStatement.del().toString());
 
-		return this.knexStatement.toString();
+		return this.knexStatement.raw(deleteQuereyRaw);
 	}
 
 }
