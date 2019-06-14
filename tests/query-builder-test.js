@@ -21,19 +21,44 @@ const makeKnex = () => {
 		'orderBy', 'orderByRaw'
 	];
 
+	const knexToString = ['insert', 'del', 'update'];
+
 	knexMethods.forEach(knexMethod => { FakeKnex[knexMethod] = sinon.stub(); });
+	knexToString.forEach(knexMethod => {
+		FakeKnex[knexMethod] = sinon.stub().returns('');
+		FakeKnex[knexMethod].toString = sinon.stub().returns('');
+	});
 
 	return FakeKnex;
 };
 
 const makeKnexFunction = () => makeKnex;
 
+const makeKnexRawShowColumns = fields => {
+	const rows = [];
+	const fieldsKeys = Object.keys(fields);
+
+	if(!fields.date_created)
+		fieldsKeys.push('date_created');
+	if(!fields.date_modified)
+		fieldsKeys.push('date_modified');
+
+	fieldsKeys.forEach(Field => {
+		rows.push({
+			Field
+		});
+	})
+
+	return [rows];
+};
+
 function queryBuilderFactory({
 	table = 'table',
 	fields = {},
 	flags = {},
 	joins = {},
-	knexSpy
+	knexSpy,
+	knexRaw = false
 } = {}) {
 
 	class Model {
@@ -64,7 +89,7 @@ function queryBuilderFactory({
 	}
 
 	const knex = knexSpy || makeKnexFunction();
-	knex.raw = sinon.stub();
+	knex.raw = knexRaw ? sinon.stub().returns(makeKnexRawShowColumns(fields)) : sinon.stub();
 	const model = new Model();
 
 	return new QueryBuilder(knex, model);
@@ -488,7 +513,7 @@ describe('QueryBuilder', function() {
 
 			const joinKnexMethods = ['join', 'innerJoin', 'leftJoin', 'leftOuter', 'rightJoin', 'rightOuterJoin', 'fullOuterJoin', 'crossJoin'];
 
-			const assertShouldntJoin = ({ params, joins }) => {
+			const assertShouldntJoin = ({ params = {}, joins = {} }) => {
 				const queryBuilder = queryBuilderFactory({ joins });
 
 				queryBuilder.params = params;
@@ -501,7 +526,7 @@ describe('QueryBuilder', function() {
 			};
 
 			it('when no \'params.joins\' passed or fields and join definition missing', function() {
-				assertShouldntJoin();
+				assertShouldntJoin({ params: {}, joins: {} });
 			});
 
 			it('when \'params.joins\' passed but fields and join definition missing', function() {
@@ -1230,26 +1255,35 @@ describe('QueryBuilder', function() {
 
 			it('when format invalid order passed', function() {
 
-				assertThrowsWhenBuild(queryBuilderFactory({
-					fields: { id: true },
-					params: { order: ['id'] }
-				}));
+				const queryBuilder = queryBuilderFactory({
+					fields: { id: true }
+				});
+
+				queryBuilder.params = { order: ['id'] };
+
+				assertThrowsWhenBuild(queryBuilder);
 			});
 
 			it('when invalid direction in order passed', function() {
 
-				assertThrowsWhenBuild(queryBuilderFactory({
-					fields: { id: true },
-					params: { order: { id: 'foo' } }
-				}));
+				const queryBuilder = queryBuilderFactory({
+					fields: { id: true }
+				});
+
+				queryBuilder.params = { order: { id: 'foo' } };
+
+				assertThrowsWhenBuild(queryBuilder);
 			});
 
 			it('when field not present in definition', function() {
 
-				assertThrowsWhenBuild(queryBuilderFactory({
-					fields: { foo: true },
-					params: { order: 'bar' }
-				}));
+				const queryBuilder = queryBuilderFactory({
+					fields: { foo: true }
+				});
+
+				queryBuilder.params = { order: 'bar' };
+
+				assertThrowsWhenBuild(queryBuilder);
 			});
 		});
 
@@ -1349,7 +1383,12 @@ describe('QueryBuilder', function() {
 					{ foo: 'bar' }
 				];
 
-				invalidLimits.forEach(invalidLimit => assertThrowsWhenBuild(queryBuilderFactory({ params: { limit: invalidLimit } })));
+				invalidLimits.forEach(invalidLimit => {
+
+					const queryBuilder = queryBuilderFactory();
+					queryBuilder.params = { limit: invalidLimit };
+					assertThrowsWhenBuild(queryBuilder);
+				});
 			});
 		});
 
@@ -1389,6 +1428,8 @@ describe('QueryBuilder', function() {
 
 				const queryBuilder = queryBuilderFactory();
 
+				queryBuilder.params = {};
+
 				queryBuilder._build();
 
 				assert(queryBuilder.knexStatement.groupBy.notCalled);
@@ -1397,9 +1438,10 @@ describe('QueryBuilder', function() {
 			it('when \'params.group\' as false passed', function() {
 
 				const queryBuilder = queryBuilderFactory({
-					fields: { foo: true },
-					params: { group: false }
+					fields: { foo: true }
 				});
+
+				queryBuilder.params = { group: false };
 
 				queryBuilder._build();
 
@@ -1408,9 +1450,9 @@ describe('QueryBuilder', function() {
 
 			it('when \'params.group\' passed but missed fields definition', function() {
 
-				const queryBuilder = queryBuilderFactory({
-					params: { group: { foo: 'bar' } }
-				});
+				const queryBuilder = queryBuilderFactory();
+
+				queryBuilder.params = { group: { foo: 'bar' } };
 
 				queryBuilder._build();
 
@@ -1423,9 +1465,10 @@ describe('QueryBuilder', function() {
 			it('when invalid \'params.group\' passed', function() {
 
 				const queryBuilder = queryBuilderFactory({
-					fields: { foo: true },
-					params: { group: { foo: 'bar' } }
+					fields: { foo: true }
 				});
+
+				queryBuilder.params = { group: { foo: 'bar' } };
 
 				assertThrowsWhenBuild(queryBuilder);
 			});
@@ -1433,9 +1476,10 @@ describe('QueryBuilder', function() {
 			it('when valid \'params.group\' passed but unknown field', function() {
 
 				const queryBuilder = queryBuilderFactory({
-					fields: { foo: true },
-					params: { group: 'bar' }
+					fields: { foo: true }
 				});
+
+				queryBuilder.params = { group: 'bar' };
 
 				assertThrowsWhenBuild(queryBuilder);
 			});
@@ -1443,16 +1487,18 @@ describe('QueryBuilder', function() {
 			it('when valid \'params.group\' passed but unknown field in an array', function() {
 
 				const queryBuilder = queryBuilderFactory({
-					fields: { foo: true },
-					params: { group: ['bar'] }
+					fields: { foo: true }
 				});
+
+				queryBuilder.params = { group: ['bar'] };
 
 				assertThrowsWhenBuild(queryBuilder);
 			});
 
 			it('when \'params.group\' as an empty array', function() {
 
-				const queryBuilder = queryBuilderFactory({ params: { group: [] }, fields: { foo: true } });
+				const queryBuilder = queryBuilderFactory({ fields: { foo: true } });
+				queryBuilder.params = { group: [] };
 
 				assertThrowsWhenBuild(queryBuilder);
 
@@ -1466,10 +1512,10 @@ describe('QueryBuilder', function() {
 			it('when valid \'params.group\' field passed', function() {
 
 				const queryBuilder = queryBuilderFactory({
-					fields: { foo: true },
-					params: { group: 'foo' }
+					fields: { foo: true }
 				});
 
+				queryBuilder.params = { group: 'foo' };
 				queryBuilder._build();
 
 				assert(queryBuilder.knexStatement.groupBy.calledOnce);
@@ -1479,9 +1525,10 @@ describe('QueryBuilder', function() {
 			it('when valid \'params.group\' array of fields passed', function() {
 
 				const queryBuilder = queryBuilderFactory({
-					fields: { foo: true, bar: true },
-					params: { group: ['foo', 'foo', 'bar'] } // arrayUnique for avoid repetition
+					fields: { foo: true, bar: true }
 				});
+
+				queryBuilder.params = { group: ['foo', 'foo', 'bar'] }; // arrayUnique for avoid repetition
 
 				queryBuilder._build();
 
@@ -1501,9 +1548,10 @@ describe('QueryBuilder', function() {
 						status: true,
 						isActive: { field: 'status', flag: 1 }
 					},
-					flags: { status: { isActive: 1 } },
-					params: { group: 'isActive' }
+					flags: { status: { isActive: 1 } }
 				});
+
+				queryBuilder.params = { group: 'isActive' };
 
 				queryBuilder._build();
 
@@ -1522,6 +1570,8 @@ describe('QueryBuilder', function() {
 
 				const queryBuilder = queryBuilderFactory();
 
+				queryBuilder.params = {};
+
 				queryBuilder._build();
 
 				assert(queryBuilder.knexStatement.offset.notCalled);
@@ -1538,7 +1588,13 @@ describe('QueryBuilder', function() {
 					{ foo: 'bar' }
 				];
 
-				invalidOffsets.forEach(invalidOffset => assertThrowsWhenBuild(queryBuilderFactory({ params: { offset: invalidOffset } })));
+				invalidOffsets.forEach(invalidOffset => {
+
+					const queryBuilder = queryBuilderFactory();
+					queryBuilder.params = { offset: invalidOffset };
+
+					assertThrowsWhenBuild(queryBuilder);
+				});
 			});
 
 			it('when invalid \'params.page\' passed', function() {
@@ -1550,11 +1606,22 @@ describe('QueryBuilder', function() {
 					{ foo: 'bar' }
 				];
 
-				invalidPages.forEach(invalidPage => assertThrowsWhenBuild(queryBuilderFactory({ params: { page: invalidPage } })));
+				invalidPages.forEach(invalidPage => {
+
+					const queryBuilder = queryBuilderFactory();
+					queryBuilder.params = { page: invalidPage };
+
+					assertThrowsWhenBuild(queryBuilder);
+				});
+
 			});
 
 			it('when valid \'params.page\' but no \'params.limit\' passed', function() {
-				assertThrowsWhenBuild(queryBuilderFactory({ params: { page: 1 } }));
+
+				const queryBuilder = queryBuilderFactory();
+				queryBuilder.params = { page: 1 };
+
+				assertThrowsWhenBuild(queryBuilder);
 			});
 		});
 
@@ -1562,7 +1629,9 @@ describe('QueryBuilder', function() {
 
 			it('when \'params.offset\' passed', function() {
 
-				const queryBuilder = queryBuilderFactory({ params: { offset: 3 } });
+				const queryBuilder = queryBuilderFactory();
+
+				queryBuilder.params = { offset: 3 };
 
 				queryBuilder._build();
 
@@ -1573,7 +1642,9 @@ describe('QueryBuilder', function() {
 
 			it('when \'param.limit\' and \'param.page\' passed', function() {
 
-				const queryBuilder = queryBuilderFactory({ params: { limit: 5, page: 3 } });
+				const queryBuilder = queryBuilderFactory();
+
+				queryBuilder.params = { limit: 5, page: 3 };
 
 				queryBuilder._build();
 
@@ -1592,9 +1663,6 @@ describe('QueryBuilder', function() {
 		it('Should throws - when wrong flag reference field', function() {
 
 			const queryBuilder = queryBuilderFactory({
-				params: {
-					fields: ['isActive']
-				},
 				fields: {
 					isActive: true
 					// status missing
@@ -1604,6 +1672,10 @@ describe('QueryBuilder', function() {
 				}
 			});
 
+			queryBuilder.params = {
+				fields: ['isActive']
+			};
+
 			assertThrowsWhenBuild(queryBuilder);
 
 			assert(!queryBuilder.knexStatement.select.called);
@@ -1612,9 +1684,6 @@ describe('QueryBuilder', function() {
 		it('Should\'t use flag', function() {
 
 			const queryBuilder = queryBuilderFactory({
-				params: {
-					fields: ['status']
-				},
 				fields: {
 					status: true,
 					isActive: true
@@ -1624,23 +1693,192 @@ describe('QueryBuilder', function() {
 				}
 			});
 
+			queryBuilder.params = {
+				fields: ['status']
+			};
+
 			queryBuilder._build();
 
 			assert(queryBuilder.knexStatement.select.calledOnce);
 		});
 	});
 
-	describe('execute', function() {
+	describe('Get', function() {
 
 		it('Should return knexStatement', function() {
 
 			const queryBuilder = queryBuilderFactory();
 
-			queryBuilder._build();
+			const executeSpy = sinon.spy(queryBuilder, 'get');
 
-			const executeSpy = sinon.spy(queryBuilder, 'execute');
+			queryBuilder.get();
 
-			queryBuilder.execute();
+			assert(executeSpy.returnValues[0] instanceof Promise);
+		});
+	});
+
+	describe('Insert', function() {
+
+		it('Should return knexStatement', function() {
+
+			const queryBuilder = queryBuilderFactory({ fields: { foo: true }, knexRaw: true });
+
+			const executeSpy = sinon.spy(queryBuilder, 'insert');
+
+			queryBuilder.insert({ foo: 'bar' });
+
+			assert(executeSpy.returnValues[0] instanceof Promise);
+		});
+
+		it('Should return knexStatement with Array', function() {
+
+			const queryBuilder = queryBuilderFactory({ fields: { foo: true }, knexRaw: true });
+
+			const executeSpy = sinon.spy(queryBuilder, 'insert');
+
+			queryBuilder.insert([{ foo: 'bar' }, { foo: 'bar2' }]);
+
+			assert(executeSpy.returnValues[0] instanceof Promise);
+		});
+
+		it('Should return knexStatement with Array and not Insert some Model Value', function() {
+
+			const queryBuilder = queryBuilderFactory({ fields: { foo: true, dummy: true, date_modified: true }, knexRaw: true });
+
+			const executeSpy = sinon.spy(queryBuilder, 'insert');
+
+			queryBuilder.insert([{ foo: 'bar', dummy: 'Very' }, { dummy: 'bar2', date_modified: 11111111 }]);
+
+			assert(executeSpy.returnValues[0] instanceof Promise);
+		});
+
+		it('Should return knexStatement with Array and extra fields', function() {
+
+			const queryBuilder = queryBuilderFactory({ fields: { foo: true, date_modified: true }, knexRaw: true });
+
+			const executeSpy = sinon.spy(queryBuilder, 'insert');
+
+			queryBuilder.insert([{ foo: 'bar', extra: 1 }, { foo: 'bar2', date_modified: 11111111 }]);
+
+			assert(executeSpy.returnValues[0] instanceof Promise);
+		});
+
+		it('Should throw Error', function() {
+
+			const queryBuilder = queryBuilderFactory({ knexRaw: true });
+
+			assert.rejects(queryBuilder.insert(), { message: 'Not valid items to Insert' });
+		});
+	});
+
+	describe('Save', function() {
+
+		it('Should return knexStatement', function() {
+
+			const queryBuilder = queryBuilderFactory({ fields: { foo: true }, knexRaw: true });
+
+			const executeSpy = sinon.spy(queryBuilder, 'save');
+
+			queryBuilder.save({ foo: 1 });
+
+			assert(executeSpy.returnValues[0] instanceof Promise);
+		});
+
+		it('Should return knexStatement with Array', function() {
+
+			const queryBuilder = queryBuilderFactory({ fields: { id: true, foo: true }, knexRaw: true });
+
+			const executeSpy = sinon.spy(queryBuilder, 'save');
+
+			queryBuilder.save([{ id: 1, foo: 'bar' }, { id: 100, foo: 'bar2' }]);
+
+			assert(executeSpy.returnValues[0] instanceof Promise);
+		});
+
+		it('Should return knexStatement with Array and extra fields', function() {
+
+			const queryBuilder = queryBuilderFactory({ fields: { foo: true, date_modified: true }, knexRaw: true });
+
+			const executeSpy = sinon.spy(queryBuilder, 'save');
+
+			queryBuilder.save([{ foo: 'bar', extra: 1 }, { foo: 'bar2' }]);
+
+			assert(executeSpy.returnValues[0] instanceof Promise);
+		});
+
+		it('Should return knexStatement and try to update Date_created', function() {
+
+			const queryBuilder = queryBuilderFactory({ fields: { foo: true }, knexRaw: true });
+
+			const executeSpy = sinon.spy(queryBuilder, 'save');
+
+			queryBuilder.save([{ foo: 'bar', date_created: 15101010 }, { foo: 'bar2' }]);
+
+			assert(executeSpy.returnValues[0] instanceof Promise);
+		});
+
+		it('Should throw Error', function() {
+
+			const queryBuilder = queryBuilderFactory();
+
+			assert.rejects(queryBuilder.save(), { message: 'Not valid items to Insert' });
+		});
+
+	});
+
+	describe('Update', function() {
+
+		it('Should return knexStatement', function() {
+
+			const queryBuilder = queryBuilderFactory({ fields: { foo: true }, knexRaw: true });
+
+			const executeSpy = sinon.spy(queryBuilder, 'update');
+
+			queryBuilder.update({ foo: 'bar' }, { dummy: { value: 1, type: 'greater' } });
+
+			assert(executeSpy.returnValues[0] instanceof Promise);
+		});
+
+		it('Should return knexStatement with extra fields', function() {
+
+			const queryBuilder = queryBuilderFactory({ fields: { foo: true, dummy: true }, knexRaw: true });
+
+			const executeSpy = sinon.spy(queryBuilder, 'update');
+
+			queryBuilder.update({ foo: 'bar', extra: 'some extra' }, { dummy: { value: 1, type: 'greater' } });
+
+			assert(executeSpy.returnValues[0] instanceof Promise);
+		});
+
+		it('Should return knexStatement and try to update Date_created', function() {
+
+			const queryBuilder = queryBuilderFactory({ fields: { foo: true, dummy: true }, knexRaw: true });
+
+			const executeSpy = sinon.spy(queryBuilder, 'update');
+
+			queryBuilder.update({ foo: 'bar', date_created: 15101010 }, { dummy: { value: 100, type: 'lesser' } });
+
+			assert(executeSpy.returnValues[0] instanceof Promise);
+		});
+
+		it('Should throw Error', function() {
+
+			const queryBuilder = queryBuilderFactory();
+
+			assert.rejects(queryBuilder.update(), { message: 'Not values to Change' });
+		});
+
+	});
+
+	describe('Remove', function() {
+
+		it('Should return knexStatement', function() {
+
+			const queryBuilder = queryBuilderFactory({ fields: { foo: true }, knexRaw: true });
+
+			const executeSpy = sinon.spy(queryBuilder, 'remove');
+
+			queryBuilder.remove({ foo: { value: 10, type: 'lesser' } });
 
 			assert(executeSpy.returnValues[0] instanceof Promise);
 		});
