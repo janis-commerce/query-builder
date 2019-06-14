@@ -47,7 +47,7 @@ const makeKnexRawShowColumns = fields => {
 		rows.push({
 			Field
 		});
-	})
+	});
 
 	return [rows];
 };
@@ -131,6 +131,21 @@ describe('QueryBuilder', function() {
 			assert.deepEqual(queryBuilder.fields, fakeFields);
 			assert.deepEqual(queryBuilder.flags, fakeFlags);
 			assert.deepEqual(queryBuilder.joins, fakeJoins);
+
+		});
+
+		it('Should throw QueryBuilderError when use constructor without Knex and Model', function() {
+
+			assert.throws(() => new QueryBuilder(), { code: QueryBuilderError.codes.INVALID_KNEX });
+
+		});
+
+		it('Should throw QueryBuilderError when use constructor without Model', function() {
+			const dummyKnex = {
+				raw: () => {}
+			};
+
+			assert.throws(() => new QueryBuilder(dummyKnex), { code: QueryBuilderError.codes.INVALID_MODEL });
 
 		});
 	});
@@ -1703,6 +1718,35 @@ describe('QueryBuilder', function() {
 		});
 	});
 
+	describe('Get Fields', function() {
+
+		it('Should return Fields from Database', async function() {
+
+			const queryBuilder = queryBuilderFactory({ fields: { foo: true }, knexRaw: true });
+
+			const fakeFields = {
+				date_created: {
+					Field: 'date_created'
+				},
+				date_modified: {
+					Field: 'date_modified'
+				},
+				foo: {
+					Field: 'foo'
+				}
+			};
+
+			assert.deepEqual(await queryBuilder._getFields(), fakeFields);
+		});
+
+		it('Should throw Error', async function() {
+
+			const queryBuilder = queryBuilderFactory({ fields: { foo: true } });
+
+			await assert.rejects(queryBuilder._getFields(), { code: QueryBuilderError.codes.INVALID_TABLE });
+		});
+	});
+
 	describe('Get', function() {
 
 		it('Should return knexStatement', function() {
@@ -1767,7 +1811,7 @@ describe('QueryBuilder', function() {
 
 			const queryBuilder = queryBuilderFactory({ knexRaw: true });
 
-			assert.rejects(queryBuilder.insert(), { message: 'Not valid items to Insert' });
+			assert.rejects(queryBuilder.insert(), { code: QueryBuilderError.codes.NO_ITEMS });
 		});
 	});
 
@@ -1821,7 +1865,7 @@ describe('QueryBuilder', function() {
 
 			const queryBuilder = queryBuilderFactory();
 
-			assert.rejects(queryBuilder.save(), { message: 'Not valid items to Insert' });
+			assert.rejects(queryBuilder.save(), { code: QueryBuilderError.codes.NO_ITEMS });
 		});
 
 	});
@@ -1865,7 +1909,7 @@ describe('QueryBuilder', function() {
 
 			const queryBuilder = queryBuilderFactory();
 
-			assert.rejects(queryBuilder.update(), { message: 'Not values to Change' });
+			assert.rejects(queryBuilder.update(), { code: QueryBuilderError.codes.NO_VALUES });
 		});
 
 	});
