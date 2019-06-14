@@ -56,13 +56,24 @@ class QueryBuilder {
 		return ['=', '!='];
 	}
 
+	static get dateFields() {
+		return DATE_FIELDS;
+	}
+
 	/**
 	 * Query Builder Constructor
 	 * @param {function} knex Knex instance Initializated
-	 * @param {class} model Class Model
+	 * @param {class} model Instance of Model
 	 * @param {object} params Parametres
 	 */
 	constructor(knex, model) {
+
+		if(!knex || !knex.raw)
+			throw new QueryBuilderError('Invalid Knex', QueryBuilderError.codes.INVALID_KNEX);
+
+		if(!model)
+			throw new QueryBuilderError('Invalid Model', QueryBuilderError.codes.INVALID_MODEL);
+
 		this.knex = knex;
 		this.model = model;
 
@@ -110,6 +121,15 @@ class QueryBuilder {
 	}
 
 	/**
+	 * Initializes Knex with the Table without Alias.
+	 */
+	_initWithoutAlias() {
+
+		this.knexStatement = this.knex(this.model.addDbName(this.table));
+		this.knexStatement.raw = this.knex.raw;
+	}
+
+	/**
 	 * Indicates if Model has fields structure
 	 *
 	 * @return {boolean} true if has structure, false otherwise
@@ -146,7 +166,7 @@ class QueryBuilder {
 			flagFieldsForSelect = this._getFlagFieldsForSelect(fields);
 
 		} else
-			throw new QueryBuilderError('Param \'fields\' must be an array');
+			throw new QueryBuilderError('Param \'fields\' must be an array', QueryBuilderError.codes.INVALID_FIELDS);
 
 		let nothingToSelect = true;
 
@@ -169,7 +189,7 @@ class QueryBuilder {
 		}
 
 		if(nothingToSelect)
-			throw new QueryBuilderError('Nothing to select');
+			throw new QueryBuilderError('Nothing to select', QueryBuilderError.codes.NO_SELECT);
 	}
 
 	/**
@@ -197,7 +217,7 @@ class QueryBuilder {
 	_validateField(fieldName) {
 
 		if(!this._fieldExists(fieldName)) {
-			this.error = new QueryBuilderError(`Unknown field '${fieldName}', check ${this.modelName}.fields`);
+			this.error = new QueryBuilderError(`Unknown field '${fieldName}', check ${this.modelName}.fields`, QueryBuilderError.codes.INVALID_FIELDS);
 			return false;
 		}
 
@@ -284,7 +304,7 @@ class QueryBuilder {
 					continue;
 
 				if(!this._validateField(field))
-					throw new QueryBuilderError(this.error);
+					throw new QueryBuilderError(this.error, QueryBuilderError.INVALID_FIELDS);
 
 				return { field, value: flagValue };
 			}
@@ -399,7 +419,7 @@ class QueryBuilder {
 			const data = this.params[selectFunction];
 
 			if(Array.isArray(data))
-				throw new QueryBuilderError(`Param '${selectFunction}' can't be an array`);
+				throw new QueryBuilderError(`Param '${selectFunction}' can't be an array`, QueryBuilderError.codes.INVALID_SELECT_FUNCTION);
 
 			let field = '*';
 			let alias = selectFunction;
@@ -416,7 +436,7 @@ class QueryBuilder {
 				if(data.alias)
 					({ alias } = data);
 			} else
-				throw new QueryBuilderError(`Param '${selectFunction}' invalid format`);
+				throw new QueryBuilderError(`Param '${selectFunction}' invalid format`, QueryBuilderError.codes.INVALID_SELECT_FUNCTION);
 
 			if(field !== '*') {
 				if(!this._validateField(field))
@@ -445,7 +465,7 @@ class QueryBuilder {
 			return;
 
 		if(!Array.isArray(joins))
-			throw new QueryBuilderError('Param \'joins\' must be an array');
+			throw new QueryBuilderError('Param \'joins\' must be an array', QueryBuilderError.codes.INVALID_JOINS);
 
 		joins.forEach(joinKey => this._makeJoin(joinKey));
 	}
@@ -492,29 +512,34 @@ class QueryBuilder {
 	_validateJoin(joinKey) {
 
 		if(!this._joinExists(joinKey)) {
-			this.error = new QueryBuilderError(`Unknown joinKey '${joinKey}', check ${this.modelName}.joins`);
+			this.error = new QueryBuilderError(`Unknown joinKey '${joinKey}', check ${this.modelName}.joins`,
+				QueryBuilderError.codes.INVALID_JOINS);
 			return false;
 		}
 
 		const modelJoin = this.joins[joinKey];
 
 		if(typeof modelJoin !== 'object') {
-			this.error = new QueryBuilderError(`join '${joinKey}' must be an object, check ${this.modelName}.joins.${joinKey}`);
+			this.error = new QueryBuilderError(`join '${joinKey}' must be an object, check ${this.modelName}.joins.${joinKey}`,
+				QueryBuilderError.codes.INVALID_JOINS);
 			return false;
 		}
 
 		if(!modelJoin.alias) {
-			this.error = new QueryBuilderError(`join '${joinKey}' 'alias' is required, check ${this.modelName}.joins.${joinKey}`);
+			this.error = new QueryBuilderError(`join '${joinKey}' 'alias' is required, check ${this.modelName}.joins.${joinKey}`,
+				QueryBuilderError.codes.INVALID_JOINS);
 			return false;
 		}
 
 		if(modelJoin.method && !this._joinMethodExists(modelJoin.method)) {
-			this.error = new QueryBuilderError(`invalid join method '${modelJoin.method}', check QueryBuilder.joinMethods`);
+			this.error = new QueryBuilderError(`invalid join method '${modelJoin.method}', check QueryBuilder.joinMethods`,
+				QueryBuilderError.codes.INVALID_JOINS);
 			return false;
 		}
 
 		if(!modelJoin.on && !modelJoin.orOn) {
-			this.error = new QueryBuilderError(`join '${joinKey}' 'on' or 'orOn' are required, check ${this.modelName}.joins.${joinKey}`);
+			this.error = new QueryBuilderError(`join '${joinKey}' 'on' or 'orOn' are required, check ${this.modelName}.joins.${joinKey}`,
+				QueryBuilderError.codes.INVALID_JOINS);
 			return false;
 		}
 
@@ -553,7 +578,8 @@ class QueryBuilder {
 	_validateJoinOperator(operator) {
 
 		if(!this.constructor.joinOperators.includes(operator)) {
-			this.error = new QueryBuilderError(`Unknown join operator '${operator}'`);
+			this.error = new QueryBuilderError(`Unknown join operator '${operator}'`,
+				QueryBuilderError.codes.INVALID_JOINS);
 			return false;
 		}
 
@@ -572,13 +598,15 @@ class QueryBuilder {
 		const on = this.joins[joinKey][type];
 
 		if(!Array.isArray(on)) {
-			this.error = new QueryBuilderError(`join '${joinKey}' parts 'on' and 'orOn' must be an array, check ${this.modelName}.joins.${joinKey}`);
+			this.error = new QueryBuilderError(`join '${joinKey}' parts 'on' and 'orOn' must be an array, check ${this.modelName}.joins.${joinKey}`,
+				QueryBuilderError.codes.INVALID_JOINS);
 			return false;
 		}
 
 		if(!on.length) {
 			/* eslint-disable max-len */
-			this.error = new QueryBuilderError(`join '${joinKey}' parts 'on' and 'orOn' must be an array with content, check ${this.modelName}.joins.${joinKey}`);
+			this.error = new QueryBuilderError(`join '${joinKey}' parts 'on' and 'orOn' must be an array with content, check ${this.modelName}.joins.${joinKey}`,
+				QueryBuilderError.codes.INVALID_JOINS);
 			return false;
 		}
 
@@ -591,7 +619,8 @@ class QueryBuilder {
 		}
 
 		/* eslint-disable max-len */
-		this.error = new QueryBuilderError(`join '${joinKey}' parts 'on' and 'orOn' must be an arrays or strings, check ${this.modelName}.joins.${joinKey}`);
+		this.error = new QueryBuilderError(`join '${joinKey}' parts 'on' and 'orOn' must be an arrays or strings, check ${this.modelName}.joins.${joinKey}`,
+			QueryBuilderError.codes.INVALID_JOINS);
 		return false;
 	}
 
@@ -605,7 +634,8 @@ class QueryBuilder {
 	_validateJoinFields(joinKey, joinFields) {
 
 		if(joinFields.length !== 2 && joinFields.length !== 3) {
-			this.error = new QueryBuilderError(`join '${joinKey}' parts 'on' and 'orOn' must have 2 o 3 values, check ${this.modelName}.joins.${joinKey}`);
+			this.error = new QueryBuilderError(`join '${joinKey}' parts 'on' and 'orOn' must have 2 o 3 values, check ${this.modelName}.joins.${joinKey}`,
+				QueryBuilderError.codes.INVALID_JOINS);
 			return false;
 		}
 
@@ -730,14 +760,16 @@ class QueryBuilder {
 		const filterType = this._getFilterType(fieldName, filter);
 
 		if(!this._filterTypeExists(filterType)) {
-			this.error = new QueryBuilderError(`Unknown filter type '${filterType}' for filter '${fieldName}'`);
+			this.error = new QueryBuilderError(`Unknown filter type '${filterType}' for filter '${fieldName}'`,
+				QueryBuilderError.codes.INVALID_FILTERS);
 			return false;
 		}
 
 		const isMultiple = this._filterIsMultiple(fieldName, filter);
 
 		if(isMultiple && !this._filterTypeAllowsMultipleValues(filterType)) {
-			this.error = new QueryBuilderError(`Filter type '${filterType}' not allows multiple values for filter '${fieldName}'`);
+			this.error = new QueryBuilderError(`Filter type '${filterType}' not allows multiple values for filter '${fieldName}'`,
+				QueryBuilderError.codes.INVALID_FILTERS);
 			return false;
 		}
 
@@ -748,14 +780,16 @@ class QueryBuilder {
 			// needMultipleValues es la cantidad de valores que "necesita" para filtrar
 
 			if(!isMultiple) {
-				this.error = new QueryBuilderError(`Filter type '${filterType}' needs multiple values for filter '${fieldName}'`);
+				this.error = new QueryBuilderError(`Filter type '${filterType}' needs multiple values for filter '${fieldName}'`,
+					QueryBuilderError.codes.INVALID_FILTERS);
 				return false;
 			}
 
 			const filterValue = this._getFilterValue(fieldName, filter);
 
 			if(filterValue.length !== needMultipleValues) {
-				this.error = new QueryBuilderError(`Filter type '${filterType}' must an array with 2 values for filter '${fieldName}'`);
+				this.error = new QueryBuilderError(`Filter type '${filterType}' must an array with 2 values for filter '${fieldName}'`,
+					QueryBuilderError.codes.INVALID_FILTERS);
 				return false;
 			}
 		}
@@ -963,7 +997,7 @@ class QueryBuilder {
 			order = { [order]: 'asc' };
 
 		if(Array.isArray(order))
-			throw new QueryBuilderError('Param order must be an object or string');
+			throw new QueryBuilderError('Param order must be an object or string', QueryBuilderError.codes.INVALID_ORDERS);
 
 		for(const [fieldName, direction] of Object.entries(order)) {
 
@@ -992,7 +1026,8 @@ class QueryBuilder {
 			return false;
 
 		if(direction !== 'asc' && direction !== 'desc') {
-			this.error = new QueryBuilderError(`Order By direccion must be 'asc' or 'desc', direction received '${direction}'`);
+			this.error = new QueryBuilderError(`Order By direccion must be 'asc' or 'desc', direction received '${direction}'`,
+				QueryBuilderError.codes.INVALID_ORDERS);
 			return false;
 		}
 
@@ -1013,10 +1048,10 @@ class QueryBuilder {
 		if(typeof group === 'string')
 			group = [group];
 		else if(!Array.isArray(group))
-			throw new QueryBuilderError('Param \'group\' must be string or an array');
+			throw new QueryBuilderError('Param \'group\' must be string or an array', QueryBuilderError.codes.INVALID_GROUPS);
 
 		if(!group.length)
-			throw new QueryBuilderError(`Param 'group' must have some fields, check ${this.modelName}.fields`);
+			throw new QueryBuilderError(`Param 'group' must have some fields, check ${this.modelName}.fields`, QueryBuilderError.codes.INVALID_GROUPS);
 
 		group = Utils.arrayUnique(group);
 
@@ -1063,7 +1098,7 @@ class QueryBuilder {
 			if(!Number.isNaN(limit) || Number.isInteger(limit))
 				this.knexStatement.limit(limit);
 			else
-				throw new QueryBuilderError('Invalid \'limit\' format, \'limit\' must be an integer');
+				throw new QueryBuilderError('Invalid \'limit\' format, \'limit\' must be an integer', QueryBuilderError.codes.INVALID_LIMITS);
 		}
 
 		let { page } = this.params;
@@ -1073,10 +1108,10 @@ class QueryBuilder {
 			page = Number(page);
 
 			if(Number.isNaN(page) || !Number.isInteger(page))
-				throw new QueryBuilderError('Invalid \'page\' format, \'page\' must be an integer');
+				throw new QueryBuilderError('Invalid \'page\' format, \'page\' must be an integer', QueryBuilderError.codes.INVALID_LIMITS);
 
 			if(!limit)
-				throw new QueryBuilderError('Param \'limit\' is required when param page given');
+				throw new QueryBuilderError('Param \'limit\' is required when param page given', QueryBuilderError.codes.INVALID_LIMITS);
 
 			const offset = (page - 1) * limit;
 
@@ -1091,7 +1126,7 @@ class QueryBuilder {
 			offset = Number(offset);
 
 			if(Number.isNaN(offset) || !Number.isInteger(offset))
-				throw new QueryBuilderError('Invalid \'offset\' format, \'offset\' must be an integer');
+				throw new QueryBuilderError('Invalid \'offset\' format, \'offset\' must be an integer', QueryBuilderError.codes.INVALID_LIMITS);
 
 			this.knexStatement.offset(offset);
 		}
@@ -1110,15 +1145,6 @@ class QueryBuilder {
 	}
 
 	/**
-	 * Initializes Knex with the Table without Alias.
-	 */
-	_initWithoutAlias() {
-
-		this.knexStatement = this.knex(this.table);
-		this.knexStatement.raw = this.knex.raw;
-	}
-
-	/**
 	 * Creates a new Array of items with only Fields found in Table
 	 * @param {Array<objects>} items Array of Objects
 	 */
@@ -1134,7 +1160,7 @@ class QueryBuilder {
 			const validFields = {};
 
 			tableFields.forEach(field => {
-				validFields[field] = item[field] || (this.dateFields.includes(field) ? time : null);
+				validFields[field] = item[field] || (this.constructor.dateFields.includes(field) ? time : null);
 			});
 
 			return validFields;
@@ -1207,7 +1233,7 @@ class QueryBuilder {
 			if(items && typeof items === 'object')
 				items = [items];
 			else
-				throw new Error('Not valid items to Insert');
+				throw new QueryBuilderError('Not valid items to Insert', QueryBuilderError.codes.NO_ITEMS);
 		}
 		// Format Items to have valid fields
 		items = await this._formatFields(items);
@@ -1231,7 +1257,7 @@ class QueryBuilder {
 			if(items && typeof items === 'object')
 				items = [items];
 			else
-				throw new Error('Not valid items to Insert');
+				throw new QueryBuilderError('Not valid items to Save', QueryBuilderError.codes.NO_ITEMS);
 		}
 		// Format Items to have valid fields
 		items = await this._formatFields(items);
@@ -1252,7 +1278,7 @@ class QueryBuilder {
 	async update(values, filters) {
 
 		if(!values || typeof values !== 'object')
-			throw new Error('Not values to Change');
+			throw new QueryBuilderError('No values to Update', QueryBuilderError.codes.NO_VALUES);
 
 		this.params = {};
 
@@ -1300,18 +1326,19 @@ class QueryBuilder {
 	 */
 	async _getFields() {
 		const table = this.model.addDbName(this.table);
+		let rows;
 
-		const [rows] = await this.knex.raw(`SHOW COLUMNS FROM ${table};`);
+		try {
+			[rows] = await this.knex.raw(`SHOW COLUMNS FROM ${table};`);
+		} catch(error) {
+			throw new QueryBuilderError('Can\'t get Table information from Database', QueryBuilderError.codes.INVALID_TABLE);
+		}
 
 		const fields = {};
 		for(const field of rows)
 			fields[field.Field] = field;
 
 		return fields;
-	}
-
-	get dateFields() {
-		return DATE_FIELDS;
 	}
 
 }
