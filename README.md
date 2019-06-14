@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/janis-commerce/query-builder.svg?JCN-70-query-builder)](https://travis-ci.org/janis-commerce/query-builder)
 [![Coverage Status](https://coveralls.io/repos/github/janis-commerce/query-builder/badge.svg?branch=JCN-70-query-builder)](https://coveralls.io/github/janis-commerce/query-builder?branch=JCN-70-query-builder)
 
-Prepare and execute SELECT Query in a SQL database.
+Prepare and execute SELECT, INSERT, UPDATE, REMOVE queries from SQL database.
 
 - - -
 
@@ -15,23 +15,48 @@ npm install @janiscommerce/query-builder
 
 - - -
 
+## Configuration
+
+You must have installed both `Knex` and `SQL` driver you will use.
+
+- - -
+
 ## API
 
-* `new QueryBuilder(knex, model, parametres)`
+* `new QueryBuilder(knex, models)`
 
     Query Builder constructor.
 
     - `knex`, [Knex module](https://knexjs.org/) with the initial configuration.
-    - `model` Microservice Model class. The Model must have table, field, joins, etc. structure define. [See more](https://github.com/janis-commerce/model-controller)
+    - `model` Microservice Model instance. The Model must have table, field, joins, etc. structure define. [See more](https://github.com/janis-commerce/model-controller)
+
+* `insert(items)`
+    - `items` - Object to Insert or Array of Objects to Insert.
+
+    Execute `INSERT` Query.
+
+    Returns a `Promise` with `[0]` if everything is OK.
+
+* `save(items)`
+    - `items` - Object to Insert or Array of Objects to Insert.
+
+    Execute `INSERT` Query with `Upsert`.
+
+    Returns a `Promise` with `object` if everything is OK.
+
+* `update(values, filters)`
+
+    Execute `UPDATE` Query.
+
+    Returns a `Promise` with `object` if everything is OK.
+
+* `remove(filters, joins)`
+
+* `get( parametres )`
+
     - `parametres` , type `object`, Parametres for the query.
 
-* `build()` 
-
-    Use parametres and Model to **build** the query.
-
-* `execute()`
-
-    Execute the Query. Needs to be **Build** first.
+    Execute `SELECT` Query.
     
     Returns a `Promise` with the results of execution in the database.
 

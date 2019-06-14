@@ -1,7 +1,7 @@
 {
   "name": "@janiscommerce/query-builder",
   "version": "1.0.0",
-  "description": "Prepare and execute SELECT Query in the database.",
+  "description": "Prepare and execute SELECT, INSERT, UPDATE, REMOVE queries from SQL database.",
   "main": "index.js",
   "scripts": {
     "test": "export TEST_ENV=true; mocha --exit -R nyan --recursive tests/",
