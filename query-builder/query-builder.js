@@ -8,6 +8,7 @@ const QueryBuilderError = require('./query-builder-error');
 
 const JOIN_DEFAULT_METHOD = 'left';
 const JOIN_DEFAULT_OPERATOR = '=';
+const DATE_FIELDS = ['date_modified', 'date_created'];
 
 class QueryBuilder {
 
@@ -1118,28 +1119,23 @@ class QueryBuilder {
 	}
 
 	/**
-	 * Creates a new Array of items with valid model fields
+	 * Creates a new Array of items with only Fields found in Table
 	 * @param {Array<objects>} items Array of Objects
 	 */
 
-	_formatFields(items) {
+	async _formatFields(items) {
 
-		const modelFields = Object.keys(this.fields);
+		const tableFields = Object.keys(await this._getFields());
+
 		return items.map(item => {
 
 			const time = (Date.now() / 1000 | 0);
 
 			const validFields = {};
 
-			modelFields.forEach(field => {
-				validFields[field] = item[field] || null;
+			tableFields.forEach(field => {
+				validFields[field] = item[field] || (this.dateFields.includes(field) ? time : null);
 			});
-
-			if(!validFields.date_created)
-				validFields.date_created = item.date_created || time;
-
-			if(!validFields.date_modified)
-				validFields.date_modified = item.date_modified || time;
 
 			return validFields;
 
@@ -1147,17 +1143,14 @@ class QueryBuilder {
 	}
 
 	/**
-	 * Creates the String for Upserts, depends on Models fields
+	 * Creates the String for Upserts Inserts.
 	 */
-	_upsertFormatFields() {
-		const modelFields = Object.keys(this.fields);
-
-		if(!modelFields.includes('date_modified'))
-			modelFields.push('date_modified');
+	async _upsertFormatFields() {
+		const tableFields = Object.keys(await this._getFields());
 
 		const duplicateKey = 'ON DUPLICATE KEY UPDATE ';
 
-		const fields = modelFields.filter(element => element !== 'date_created').map(field => {
+		const fields = tableFields.filter(element => element !== 'date_created').map(field => {
 			if(field === 'id')
 				return 'id = LAST_INSERT_ID(id)';
 			return `${field} = VALUES(${field})`;
@@ -1171,15 +1164,15 @@ class QueryBuilder {
 	 * @param {object} values
 	 * @returns {object}
 	 */
-	_formatUpdateValues(values) {
+	async _formatUpdateValues(values) {
 
-		const modelFields = [...Object.keys(this.fields), 'date_modified'];
+		const tableFields = [...Object.keys(await this._getFields())];
 		const valuesFields = Object.keys(values);
 
 		const validFields = {};
 
 		valuesFields.forEach(field => {
-			if(modelFields.includes(field))
+			if(tableFields.includes(field))
 				validFields[`t.${field}`] = values[field];
 		});
 
@@ -1196,7 +1189,7 @@ class QueryBuilder {
 	 * @returns {String} Complete Query with the changes
 	 */
 	_changeQueryTableAlias(queryToChange, newName = this.table, formerName = 't') {
-		return queryToChange.replace(`\`${formerName}\``, `\`${newName}\``);
+		return queryToChange.split(`\`${formerName}\``).join(`\`${newName}\``); // replace not work for many replaces
 	}
 
 	/**
@@ -1209,15 +1202,15 @@ class QueryBuilder {
 		this._initWithoutAlias();
 
 		// Check if Items is an Array
-		if(!items.length) {
+		if(!items || !items.length) {
 			// if it's not, but it's an individual element
-			if(typeof items === 'object')
+			if(items && typeof items === 'object')
 				items = [items];
 			else
 				throw new Error('Not valid items to Insert');
 		}
 		// Format Items to have valid fields
-		items = this._formatFields(items);
+		items = await this._formatFields(items);
 
 		return this.knexStatement.insert(items);
 
@@ -1233,19 +1226,19 @@ class QueryBuilder {
 		this._initWithoutAlias();
 
 		// Check if Items is an Array
-		if(!items.length) {
+		if(!items || !items.length) {
 			// if it's not, but it's an individual element
-			if(typeof items === 'object')
+			if(items && typeof items === 'object')
 				items = [items];
 			else
 				throw new Error('Not valid items to Insert');
 		}
 		// Format Items to have valid fields
-		items = this._formatFields(items);
+		items = await this._formatFields(items);
 
 		let query = this.knexStatement.insert(items).toString();
 
-		query += this.knexStatement.raw(this._upsertFormatFields());
+		query += await this._upsertFormatFields();
 
 		return this.knexStatement.raw(query);
 	}
@@ -1258,8 +1251,10 @@ class QueryBuilder {
 	 */
 	async update(values, filters) {
 
-		if(typeof values !== 'object')
+		if(!values || typeof values !== 'object')
 			throw new Error('Not values to Change');
+
+		this.params = {};
 
 		this._init();
 
@@ -1267,11 +1262,11 @@ class QueryBuilder {
 			filters
 		};
 
-		values = this._formatUpdateValues(values);
-
-		this.knexStatement = this.knexStatement.update(values);
+		values = await this._formatUpdateValues(values);
 
 		this._buildFilters();
+
+		this.knexStatement = this.knexStatement.update(values);
 
 		return this.knexStatement;
 	}
@@ -1279,22 +1274,44 @@ class QueryBuilder {
 	/**
 	 * Delete rows from Database.
 	 * @param {object} filters Object with filters. (Where)
+	 * @param {object} joins Object with Joins.
 	 * @returns {Promise<Array>} Array of Objects, index 0: Results-Headers object
 	 */
-	async remove(filters) {
+	async remove(filters, joins) {
 
 		this._initWithoutAlias();
 
 		this.params = {
-			filters
+			filters,
+			joins
 		};
 		// Builds the Filters (Where)
 		this._buildFilters();
-		// JOINS PENDING
+		// Builds the Joins
+		this._buildJoins();
 		// Necesary to use Knex, otherwise fails.
 		const deleteQuereyRaw = this._changeQueryTableAlias(this.knexStatement.del().toString());
 
-		return this.knexStatement.raw(deleteQuereyRaw);
+		return this.knexStatement.raw(deleteQuereyRaw).toString();
+	}
+
+	/**
+	 * Get Fields from Table in database
+	 */
+	async _getFields() {
+		const table = this.model.addDbName(this.table);
+
+		const [rows] = await this.knex.raw(`SHOW COLUMNS FROM ${table};`);
+
+		const fields = {};
+		for(const field of rows)
+			fields[field.Field] = field;
+
+		return fields;
+	}
+
+	get dateFields() {
+		return DATE_FIELDS;
 	}
 
 }
