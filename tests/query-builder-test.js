@@ -3,7 +3,7 @@
 const assert = require('assert');
 const sinon = require('sinon');
 
-const { QueryBuilderError } = require('./../query-builder');
+const { QueryBuilderError } = require('./../lib');
 const QueryBuilder = require('./../index');
 
 /* eslint-disable prefer-arrow-callback */
