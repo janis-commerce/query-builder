@@ -41,7 +41,7 @@ module.exports = {
 		'no-underscore-dangle': ['warn', {
 			allowAfterThis: true,
 			allowAfterSuper: true,
-			allow: ['_call', '__rootpath', '_where', '_build']
+			allow: ['_call', '__rootpath', '_where', '_build', '_getFields']
 		}],
 
 		'no-tabs': 0,
@@ -50,7 +50,11 @@ module.exports = {
 
 		'func-names': 0,
 
-		'space-before-function-paren': ['error', 'never'],
+		'space-before-function-paren': ['error', {
+			'anonymous': 'never',
+			'named': 'never',
+			'asyncArrow': 'always'
+		}],
 
 		'arrow-parens': ['error', 'as-needed'],
 		'arrow-body-style': 0,

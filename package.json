@@ -4,6 +4,7 @@
   "description": "Prepare and execute SELECT, INSERT, UPDATE, REMOVE queries from SQL database.",
   "main": "index.js",
   "scripts": {
+    "lint": "eslint index.js lib/ tests/",
     "test": "export TEST_ENV=true; mocha --exit -R nyan --recursive tests/",
     "watch-test": "export TEST_ENV=true; mocha --exit -R nyan -w --recursive tests/",
     "test-ci": "nyc --reporter=html --reporter=text mocha --recursive tests/",
@@ -29,6 +30,10 @@
     "eslint-plugin-import": "^2.14.0",
     "mocha": "^5.2.0",
     "nyc": "^14.1.0",
-    "sinon": "^7.3.2"
-  }
+    "sinon": "^7.3.2",
+    "husky": "^2.4.1"
+  },
+  "files": [
+    "lib/"
+  ]
 }

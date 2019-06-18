@@ -1,5 +1,5 @@
 'use strict';
 
-const { QueryBuilder } = require('./query-builder');
+const { QueryBuilder } = require('./lib');
 
 module.exports = QueryBuilder;
