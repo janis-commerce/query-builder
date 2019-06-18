@@ -28,7 +28,7 @@ You must have installed both `Knex` and `SQL` driver you will use.
     Query Builder constructor.
 
     - `knex`, [Knex module](https://knexjs.org/) with the initial configuration.
-    - `model` Microservice Model instance. The Model must have table, field, joins, etc. structure define. [See more](https://github.com/janis-commerce/model-controller)
+    - `model` Model instance. The Model must have table, field, joins, etc. structure define. [See more](https://github.com/janis-commerce/model-controller)
 
 * `insert(items)`
     - `items` - Object to Insert or Array of Objects to Insert.
@@ -45,16 +45,24 @@ You must have installed both `Knex` and `SQL` driver you will use.
     Returns a `Promise` with `object` if everything is OK.
 
 * `update(values, filters)`
+    - `values` will be updated to.
+    - `filters` (where clause) conditions to filter rows. See **Filters**.
 
     Execute `UPDATE` Query.
 
     Returns a `Promise` with `object` if everything is OK.
 
 * `remove(filters, joins)`
+    - `filters` (where clause) conditions to filter rows. See **Filters**.
+    - `joins` if you need to joins table. See **Joins**.
+
+    Execute `REMOVE` Query.
+
+    Returns a `Promise` with `object` if everything is OK.
 
 * `get( parametres )`
 
-    - `parametres` , type `object`, Parametres for the query.
+    - `parametres` , type `object`, Parametres for the query, filters, joins, limits.
 
     Execute `SELECT` Query.
     
@@ -64,16 +72,13 @@ You must have installed both `Knex` and `SQL` driver you will use.
 
 ## Parametres
 
-`Parametres` in the constructor is an `object`. Some of the uses are:
-
 ### Select All fields
 
 If it's empty, it select all fields in the table. By default **Query Builder** adds `t` alias to the table.
 
 ```javascript
-const query = new QueryBuilder(knex,someModel,{});
-query.build();
-const results = await query.execute();
+const query = new QueryBuilder(knex,someModel);
+const results = await query.get({});
 ```
 
 The Query is:
@@ -89,9 +94,8 @@ const parametres = {
     fields: false
     };
 
-const query = new QueryBuilder(knex,someModel,parametres);
-query.build();
-const results = await query.execute();
+const query = new QueryBuilder(knex,someModel);
+const results = await query.get(parametres);
 ```
 
 The query is: 
@@ -113,9 +117,8 @@ const parametres = {
     fields: ['some','field','other']
 };
 
-const query = new QueryBuilder(knex,someModel,parametres);
-query.build();
-const results = await query.execute();
+const query = new QueryBuilder(knex,someModel);
+const results = await query.get(parametres);
 ```
 
 The query is :
@@ -143,10 +146,8 @@ It's posible add special functions in the queries, as a *key* in `parametres` ob
         count: true
     };
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = await query.execute();
-    
+    const query = new QueryBuilder(knex,someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -161,9 +162,8 @@ It's posible add special functions in the queries, as a *key* in `parametres` ob
         avg: 'some'
     };
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = await query.execute();
+    const query = new QueryBuilder(knex,someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -182,9 +182,8 @@ It's posible add special functions in the queries, as a *key* in `parametres` ob
         }
     }
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = await query.execute();
+    const query = new QueryBuilder(knex,someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -193,16 +192,19 @@ It's posible add special functions in the queries, as a *key* in `parametres` ob
     select max(`t.some`) as `maxSome` from `table` as `t`;
     ```
 
-### Joins
+## Joins
 
 First, Fields and Join config must be define in **Model** structure.
 
-In `parametres` object use a `joins` as *key* and `Array` of `String` with the table names as *value*
+In `parametres` (in *get*) object or `joins` (in *remove*) use a `joins` as *key* and `Array` of `String` with the table names as *value*
 
 ```javascript
 parametres = {
     joins : ['tableB']
 }
+
+const query = new QueryBuilder(knex,someModel);
+const results = await query.get(parametres);
 ```
 
 The query is :
@@ -211,7 +213,7 @@ The query is :
 select * from `table` as `t` left join `table_b` as `tb` on `t`.`some` = `tb`.`any`;
 ```
 
-### Where
+## Filters / Where
 
 To filter by fields use `filters` as *key* and an `object` or an `Array` of them as *value*.
 
@@ -224,9 +226,8 @@ To filter by fields use `filters` as *key* and an `object` or an `Array` of them
         }
     };
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = await query.execute();
+    const query = new QueryBuilder(knex,someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -245,9 +246,8 @@ To filter by fields use `filters` as *key* and an `object` or an `Array` of them
         }
     };
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = await query.execute();
+    const query = new QueryBuilder(knex,someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -265,9 +265,8 @@ To filter by fields use `filters` as *key* and an `object` or an `Array` of them
         ]
     };
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = await query.execute();
+    const query = new QueryBuilder(knex,someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -289,9 +288,8 @@ To filter by fields use `filters` as *key* and an `object` or an `Array` of them
         ]
     }
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = await query.execute();
+    const query = new QueryBuilder(knex,someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -356,9 +354,8 @@ Use `type` key in the `filter` object with some of these:
         }
     }
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = await query.execute();
+    const query = new QueryBuilder(knex,someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -378,9 +375,8 @@ Use `type` key in the `filter` object with some of these:
         }
     }
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = await query.execute();
+    const query = new QueryBuilder(knex,someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -400,9 +396,8 @@ Use `type` key in the `filter` object with some of these:
         }
     }
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = await query.execute();
+    const query = new QueryBuilder(knex,someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -422,9 +417,8 @@ Use `type` key in the `filter` object with some of these:
         }
     }
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = await query.execute();
+    const query = new QueryBuilder(knex,someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -444,9 +438,8 @@ Use `type` key in the `filter` object with some of these:
         }
     }
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = await query.execute();
+    const query = new QueryBuilder(knex,someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -466,9 +459,8 @@ Use `type` key in the `filter` object with some of these:
         }
     }
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = await query.execute();
+    const query = new QueryBuilder(knex,someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -488,9 +480,8 @@ Use `type` key in the `filter` object with some of these:
         }
     }
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = await query.execute();
+    const query = new QueryBuilder(knex,someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -510,9 +501,8 @@ Use `type` key in the `filter` object with some of these:
         }
     }
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = await query.execute();
+    const query = new QueryBuilder(knex,someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -532,9 +522,8 @@ Use `type` key in the `filter` object with some of these:
         }
     }
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = await query.execute();
+    const query = new QueryBuilder(knex,someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -554,9 +543,8 @@ Use `type` key in the `filter` object with some of these:
         }
     }
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = await query.execute();
+    const query = new QueryBuilder(knex,someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -578,9 +566,8 @@ Use `group` *key* to group by fields. It's SQL equivalent to `GROUP BY`.
         }
     }
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = await query.execute();
+    const query = new QueryBuilder(knex,someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -598,9 +585,8 @@ Use `group` *key* to group by fields. It's SQL equivalent to `GROUP BY`.
         }
     }
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = query.execute();
+    const query = new QueryBuilder(knex,someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -622,9 +608,8 @@ Use `order` *key* to group by fields. It's SQL equivalent to `ORDER BY`.
         }
     }
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = query.execute();
+    const query = new QueryBuilder(knex,someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -642,9 +627,8 @@ Use `order` *key* to group by fields. It's SQL equivalent to `ORDER BY`.
         }
     }
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = await query.execute();
+    const query = new QueryBuilder(knex,someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -665,9 +649,8 @@ Use `order` *key* to group by fields. It's SQL equivalent to `ORDER BY`.
         }
     }
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = await query.execute();
+    const query = new QueryBuilder(knex,someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -685,9 +668,8 @@ const parametres = {
     limit: 1000
 }
 
-const query = new QueryBuilder(knex,someModel,parametres);
-query.build();
-const results = await query.execute();
+const query = new QueryBuilder(knex,someModel);
+const results = await query.get(parametres);
 ```
 
 The query is :
@@ -710,9 +692,8 @@ const parametres = {
     page: 2000
 }
 
-const query = new QueryBuilder(knex,someModel,parametres);
-query.build();
-const results = await query.execute();
+const query = new QueryBuilder(knex,someModel);
+const results = await query.get(parametres);
 ```
 
 The query is :
@@ -726,146 +707,370 @@ select * from `table` as `t` limit 1000 offset 2000;
 
 The errors are informed with a `QueryBuilderError` with the proper message for each error.
 
+The codes are the following:
+
+|Code	|Description				|
+|-------|---------------------------|
+|1		|Invalid Model  			|
+|2		|Invalid Knex 				|
+|3		|Invalid Fields     		|
+|4		|Invalid Select Functions   |
+|5		|Invalid Joins	            |
+|6      |Invalid Filters            |
+|7      |Invalid Flags              |
+|8      |Invalid Orders             |
+|9      |Invalid Groups             |
+|10     |Invalid Limits             |
+|11     |Invalid Table              |
+|12     |No Items                   |
+|13     |No Values                  |
+|14     |Nothing Select             |
+
 - - -
 
 ## Usage
 
-Some examples.
+Example, using **MySQL** database.
 
-```javascript
-const QueryBuilder = require('@janniscommerce/query-builder');
+First Installed the packages.
 
-// knex - an Knex Initialize function with proper database config
-/* 
-    someModel - Model of 'some' microservice
-    with
-    static get table() {
-        return 'table_some'
-    }
-*/
-
-const queryBuilder = new QueryBuilder(knex, someModel);
-// build the query
-queryBuilder.build(); // select `t`.* from `table_some` as `t;
-// Execute the Query
-const results = await queryBuilder.execute();
-
+```sh
+npm i @janniscomerce/query-builder knex mysql2 --save
 ```
 
-With Parametres
+In the `.js` file: 
 
 ```javascript
-const QueryBuilder = require('@janniscommerce/query-builder');
+const knex = require('Knex');
+const const QueryBuilder = require('@janniscommerce/query-builder');
 
-// knex - an Knex Initialize function with proper database config
+/*
+    'SomeModel' is a Model extension with properties:
+
+    - Db Name   :   'fizzmod'
+    - Table     :   'fake_table' 
+    - Fields    :   * 'id', type: int
+                    * 'name', type: string  
+*/
+const someModel = new SomeModel();
+
+// Initialize Knex with Database configuration
+// Tables are already created with PRIMARY KEY ID
+
+const config = {
+    host: 'localhost',
+    user: 'fizzRoot',
+    password: '20191806',
+    database: 'fizzmod',
+    port: 3306
+};
+
+const knex = require('knex')({
+	client: 'mysql2',
+	version: '1.5.2',
+	connection: config,
+	pool: { min: 0, max: config.connectionLimit }
+}).on('query-error', error => {
+	console.error('ERROR');
+});
+
+// Initialize Query Builder
+
+const modelQueryBuilder = new QueryBuilder(knex, someModel);
+
+// INSERT One New Item
+
+let item = {
+    id: 1,
+    name: 'Batman',
+    extra: 'No valido' // Will not be inserted
+};
+
 /* 
-    someModel - Model of 'some' microservice
-    with
-    static get table() {
-        return 'table_some'
-    }
-
-    static get fields() {
-        return {
-            foo: true,
-            bar: true,
-            other: 'otro'
-        }
-    }
+    response if correct: [0]
+    if PRIMARY KEY exists will throw an Error
 */
 
-const params = {
-    fields: ['foo','bar','other']
+const insertItem = await modelQueryBuilder.insert(item); 
+
+item = {
+    id: 2,
+    name: 'MAL'
+};
+
+insertItem = await modelQueryBuilder.insert(item); 
+
+// INSERT Multiple New Items
+
+let items = [
+    { id: 3, name: 'Ironman' },
+    { id: 4, name: 'Spiderman' },
+    { id: 5, name: 'Green Lantern' }
+];
+
+const insertItems = await modelQueryBuilder.insert(items);
+
+/* 
+    response if correct: [0]
+    if PRIMARY KEY exists will throw an Error
+*/
+
+// SAVE: INSERT with UPSERT, if the PRIMARY KEY exist will be update the row
+
+item = {
+    id: 2,
+    name: 'Robin'
+};
+
+/*
+    Response:
+    [   
+        {
+            fieldCount: 0,
+            affectedRows: 1,
+            insertId: 0,
+            info: 'Records: 1, Duplicates: 1, Warning: 0',
+            serverStatus:2,
+            warningStatus: 0
+        },
+        undefined
+    ]
+*/
+
+const saveItem = await modelQueryBuilder.save(item); 
+
+items = [
+    { id: 6, name: 'Ironman' },
+    { id: 7, name: 'Spiderman' },
+    { id: 2, name: 'Superman' },
+    { id: 8, name: 'Some DC character'},
+    { id: 9, name: 'Some DC character'},
+    { id: 10, name: 'Some DC character'},
+];
+
+const saveItems = await modelQueryBuilder.save(items);
+
+/*
+    Response:
+    [   
+        {
+            fieldCount: 0,
+            affectedRows: 3,
+            insertId: 0,
+            info: 'Records: 3, Duplicates: 1, Warning: 0',
+            serverStatus:2,
+            warningStatus: 0
+        },
+        undefined
+    ]
+*/
+
+// UPDATE
+// Try to Update one Item
+let valueToUpdate = {
+    name: 'John Constantine'
+};
+
+let filters = {
+    id: { value: 8 }
+};
+
+// Will try to update rows with ID equals to 8, and change name for 'Jonh Constantine'
+const updatedItems = await modelQueryBuilder.update(valueToUpdate, filters);
+/*
+    Response: 1
+*/
+
+
+// Try to Update many items that not exist.
+valueToUpdate = {
+    name: 'SkyWalker'
+};
+
+filters = {
+    id: { value: 100, type: 'greater' }
+};
+
+// Will try to update rows with ID greater than 100 and change name for 'SkyWalker'
+updatedItems = await modelQueryBuilder.update(valueToUpdate, filters);
+/*
+    Response: ''
+*/
+
+//Try to update many items
+valueToUpdate = {
+    name: 'Some DC Villain'
+};
+
+filters = {
+    id: { value: 8, type: 'greater' }
+};
+
+// Will try to update rows with ID greater than 8 and change name for 'Some DC Villain'
+updatedItems = await modelQueryBuilder.update(valueToUpdate, filters);
+/*
+    Response: 2
+*/
+
+// REMOVE
+filters = {
+    id: { value: 10 }
 }
-const queryBuilder = new QueryBuilder(knex, someModel,params);
-// build the query
-queryBuilder.build(); // select `t`.`foo`, `t`.`bar`, `t`.`otro` from `table_some` as `t;
-// Execute the Query
-const results = await queryBuilder.execute();
 
-```
-
-With Special Functions
-
-```javascript
-const QueryBuilder = require('@janniscommerce/query-builder');
-
-// knex - an Knex Initialize function with proper database config
-/* 
-    someModel - Model of 'some' microservice
-    with
-    static get table() {
-        return 'table_some'
-    }
-
-    static get fields() {
-        return {
-            foo: true,
-            bar: true
-        }
-    }
+// Remove all items that ID is equal to 10
+const removeItems = await modelQueryBuilder.remove(filters);
+/*
+    Response:
+    [   
+        {
+            fieldCount: 0,
+            affectedRows: 1,
+            insertId: 0,
+            info: '',
+            serverStatus:2,
+            warningStatus: 0
+        },
+        undefined
+    ]
 */
 
-const params = {
+// GET
+
+// Get all Items and every Field saved.
+let results = await modelQueryBuilder.get();
+/*
+    Response: 
+    [
+        { id: 1, name 'Batman' },
+        { id: 2, name 'Superman' },
+        { id: 3, name: 'Ironman' },
+        { id: 4, name: 'Spiderman' },
+        { id: 5, name: 'Green Lantern' },
+        { id: 6, name: 'Ironman' },
+        { id: 7, name: 'Spiderman' },
+        { id: 8, name: 'John Constatine'},
+        { id: 9, name: 'Some DC Villain'}
+    ]
+*/
+
+// Get all Items and one Field saved.
+
+let params = {
+    fields : ['name']
+}
+
+let results = await modelQueryBuilder.get(params);
+/*
+    Response: 
+    [
+        { name 'Batman' },
+        { name 'Superman' },
+        { name: 'Ironman' },
+        { name: 'Spiderman' },
+        { name: 'Green Lantern' },
+        { name: 'Ironman' },
+        { name: 'Spiderman' },
+        { name: 'John Constatine'},
+        { name: 'Some DC Villain'}
+    ]
+*/
+
+// Get all Items and one Field saved.
+
+params = {
+    fields : ['name']
+}
+
+results = await modelQueryBuilder.get(params);
+/*
+    Response: 
+    [
+        { name 'Batman' },
+        { name 'Superman' },
+        { name: 'Ironman' },
+        { name: 'Spiderman' },
+        { name: 'Green Lantern' },
+        { name: 'Ironman' },
+        { name: 'Spiderman' },
+        { name: 'John Constatine'},
+        { name: 'Some DC Villain'}
+    ]
+*/
+
+// Get the count of items.
+
+params = {
+    fields : ['name'],
     count: true
 }
-const queryBuilder = new QueryBuilder(knex, someModel,params);
-// build the query
-queryBuilder.build(); // select count(*) from `table_some` as `t
-// Execute the Query
-const results = await queryBuilder.execute();
 
-// With a single field
-
-const params2 = {
-    count: 'foo'
-}
-const queryBuilder2 = new QueryBuilder(knex, someModel,params2);
-// build the query
-queryBuilder2.build(); // select count(`t.foo`) from `table_some` as `t
-// Execute the Query
-const results = await queryBuilder2.execute();
-
-```
-
-Using Joins
-
-```javascript
-const QueryBuilder = require('@janniscommerce/query-builder');
-
-// knex - an Knex Initialize function with proper database config
-/* 
-    someModel - Class Model of 'some' microservice
-    with
-    static get table() {
-        return 'table_some'
-    };
-
-    static get fields() {
-        return {
-            foo: true,
-            bar: { table: 'tableB'}
-        }
-    };
-
-    static get joins() {
-    return {
-        tableB: {
-            table: 'tableB',
-            alias: 'tb',
-            on: ['foo', 'bar']
-        }
-    };
-};
+results = await modelQueryBuilder.get(params);
+/*
+    Response: 
+    [
+        { name 'Batman', count: 9 }
+    ]
 */
 
-const params = {
-    joins: ['tableB']
+// Get with filters
+
+params = {
+    fields : ['name'],
+    filters : {
+        id: { value: 5, type: 'lesser' }
+    }
 }
-const queryBuilder = new QueryBuilder(knex, someModel,params);
-// build the query
-queryBuilder.build(); // select * from `table_some` as `t` left join `table_b` as `tb` on `t`.`foo` = `tb`.`bar`;
-// Execute the Query
-const results = await queryBuilder.execute();
+
+results = await modelQueryBuilder.get(params);
+/*
+    Response: 
+    [
+        { name 'Batman' },
+        { name 'Superman' },
+        { name: 'Ironman' },
+        { name: 'Spiderman' }
+    ]
+*/
+
+// Get with Limit
+
+params = {
+    fields : ['name'],
+    limit: 4
+}
+
+results = await modelQueryBuilder.get(params);
+/*
+    Response: 
+    [
+        { name 'Batman' },
+        { name 'Superman' },
+        { name: 'Ironman' },
+        { name: 'Spiderman' }
+    ]
+*/
+
+// Get with Limit and Page
+
+params = {
+    fields : ['name'],
+    limit: 4,
+    page: 2
+}
+
+results = await modelQueryBuilder.get(params);
+/*
+    Response: 
+    [
+        { name: 'Green Lantern' },
+        { name: 'Ironman' },
+        { name: 'Spiderman' },
+        { name: 'John Constatine'}
+    ]
+*/
 
 ```
+
+
+
+
