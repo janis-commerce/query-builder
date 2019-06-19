@@ -8,6 +8,19 @@ const QueryBuilder = require('./../index');
 
 /* eslint-disable prefer-arrow-callback */
 
+const convertKeysToCamelCase = obj => {
+	const result = {};
+
+	for(const [key, value] of Object.entries({ ...obj })) {
+
+		const camelCaseKey = key.replace(/_([a-z])/g, letter => letter[1].toUpperCase());
+
+		result[camelCaseKey] = value;
+	}
+
+	return result;
+};
+
 const makeKnex = () => {
 	class FakeKnex {}
 
@@ -34,7 +47,7 @@ const makeKnex = () => {
 
 const makeKnexFunction = () => makeKnex;
 
-const makeKnexRawShowColumns = fields => {
+const makeKnexRawShowColumns = (fields, needObject = false) => {
 	const rows = [];
 	const fieldsKeys = Object.keys(fields);
 
@@ -49,7 +62,10 @@ const makeKnexRawShowColumns = fields => {
 		});
 	});
 
-	return [rows];
+	if(!needObject)
+		return [rows];
+
+	return [convertKeysToCamelCase(rows)];
 };
 
 function queryBuilderFactory({
@@ -58,7 +74,7 @@ function queryBuilderFactory({
 	flags = {},
 	joins = {},
 	knexSpy,
-	knexRaw = false
+	knexRaw = 0
 } = {}) {
 
 	class Model {
@@ -89,7 +105,7 @@ function queryBuilderFactory({
 	}
 
 	const knex = knexSpy || makeKnexFunction();
-	knex.raw = knexRaw ? sinon.stub().returns(makeKnexRawShowColumns(fields)) : sinon.stub();
+	knex.raw = knexRaw ? sinon.stub().returns(makeKnexRawShowColumns(fields, knexRaw === 1)) : sinon.stub();
 	const model = new Model();
 
 	return new QueryBuilder(knex, model);
@@ -1722,7 +1738,26 @@ describe('QueryBuilder', function() {
 
 		it('Should return Fields from Database', async function() {
 
-			const queryBuilder = queryBuilderFactory({ fields: { foo: true }, knexRaw: true });
+			const queryBuilder = queryBuilderFactory({ fields: { foo: true }, knexRaw: 2 });
+
+			const fakeFields = {
+				date_created: {
+					Field: 'date_created'
+				},
+				date_modified: {
+					Field: 'date_modified'
+				},
+				foo: {
+					Field: 'foo'
+				}
+			};
+
+			assert.deepEqual(await queryBuilder._getFields(), fakeFields);
+		});
+
+		it('Should return Fields from Database in Object mode', async function() {
+
+			const queryBuilder = queryBuilderFactory({ fields: { foo: true }, knexRaw: 1 });
 
 			const fakeFields = {
 				date_created: {
@@ -1813,6 +1848,7 @@ describe('QueryBuilder', function() {
 
 			assert.rejects(queryBuilder.insert(), { code: QueryBuilderError.codes.NO_ITEMS });
 		});
+
 	});
 
 	describe('Save', function() {
