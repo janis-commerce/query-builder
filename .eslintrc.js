@@ -41,7 +41,7 @@ module.exports = {
 		'no-underscore-dangle': ['warn', {
 			allowAfterThis: true,
 			allowAfterSuper: true,
-			allow: ['_call', '__rootpath', '_where', '_build', '_getFields']
+			allow: ['_call', '__rootpath', '_where', '_build', '_getFields', '_validateField', '_isFlagField', '_getFlagData', '_getFormattedField', '_fieldExists']
 		}],
 
 		'no-tabs': 0,
