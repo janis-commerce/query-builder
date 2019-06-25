@@ -124,342 +124,39 @@ The codes are the following:
 
 ## Usage
 
-Example, using **MySQL** database.
-
-First Installed the packages.
-
-```sh
-npm i @janniscomerce/query-builder knex mysql2 --save
-```
-
-In the `.js` file: 
+If you want an example using **MySQL**. [See Here](https://github.com/janis-commerce/query-builder/docs/MySQL.md)
 
 ```javascript
 const QueryBuilder = require('@janniscommerce/query-builder');
 
-/*
-    'SomeModel' is a Model extension with properties:
+// knex is already with init config
+// model is an instance of a Model Class
 
-    - Db Name   :   'fizzmod'
-    - Table     :   'fake_table' 
-    - Fields    :   * 'id', type: int
-                    * 'name', type: string  
-*/
-const someModel = new SomeModel();
+const queryBuilder = new QueryBuilder(knex, model);
 
-// Initialize Knex with Database configuration
-// Tables are already created with PRIMARY KEY ID
+// Insert Items
+// item an object with valid fields 
+// Could be multiple items
+await queryBuilder.insert(item);
 
-const config = {
-    host: 'localhost',
-    user: 'fizzRoot',
-    password: '20191806',
-    database: 'fizzmod',
-    port: 3306
-};
+// Save item which could already exist
+await queryBuilder.save(item)
 
-const knex = require('knex')({
-	client: 'mysql2',
-	version: '1.5.2',
-	connection: config,
-	pool: { min: 0, max: config.connectionLimit }
-}).on('query-error', error => {
-	console.error('ERROR');
-});
+// Update any Items
+// values, object whit fields to change
+// filters, object with the correct filters
+await queryBuilder.update(values, filters);
 
-// Initialize Query Builder
+// Remove any Items
+// joins, object with table joins define if it's possible
+await queryBuilder.remove(filters, joins);
 
-const modelQueryBuilder = new QueryBuilder(knex, someModel);
+// Get Items
+// Get All
+const resultsAll = await queryBuilder.get();
 
-// INSERT One New Item
-
-let item = {
-    id: 1,
-    name: 'Batman',
-    extra: 'No valido' // Will not be inserted
-};
-
-/* 
-    response if correct: [0]
-    if PRIMARY KEY exists will throw an Error
-*/
-
-const insertItem = await modelQueryBuilder.insert(item); 
-
-item = {
-    id: 2,
-    name: 'MAL'
-};
-
-insertItem = await modelQueryBuilder.insert(item); 
-
-// INSERT Multiple New Items
-
-let items = [
-    { id: 3, name: 'Ironman' },
-    { id: 4, name: 'Spiderman' },
-    { id: 5, name: 'Green Lantern' }
-];
-
-insertItems = await modelQueryBuilder.insert(items);
-
-/* 
-    response if correct: [0]
-    if PRIMARY KEY exists will throw an Error
-*/
-
-// SAVE: INSERT with UPSERT, if the PRIMARY KEY exist will be update the row
-
-item = {
-    id: 2,
-    name: 'Robin'
-};
-
-/*
-    Response:
-    [   
-        {
-            fieldCount: 0,
-            affectedRows: 1,
-            insertId: 0,
-            info: 'Records: 1, Duplicates: 1, Warning: 0',
-            serverStatus:2,
-            warningStatus: 0
-        },
-        undefined
-    ]
-*/
-
-const saveItem = await modelQueryBuilder.save(item); 
-
-items = [
-    { id: 6, name: 'Ironman' },
-    { id: 7, name: 'Spiderman' },
-    { id: 2, name: 'Superman' },
-    { id: 8, name: 'Some DC character'},
-    { id: 9, name: 'Some DC character'},
-    { id: 10, name: 'Some DC character'},
-];
-
-const saveItems = await modelQueryBuilder.save(items);
-
-/*
-    Response:
-    [   
-        {
-            fieldCount: 0,
-            affectedRows: 3,
-            insertId: 0,
-            info: 'Records: 3, Duplicates: 1, Warning: 0',
-            serverStatus:2,
-            warningStatus: 0
-        },
-        undefined
-    ]
-*/
-
-// UPDATE
-// Try to Update one Item
-let valueToUpdate = {
-    name: 'John Constantine'
-};
-
-let filters = {
-    id: { value: 8 }
-};
-
-// Will try to update rows with ID equals to 8, and change name for 'Jonh Constantine'
-const updatedItems = await modelQueryBuilder.update(valueToUpdate, filters);
-/*
-    Response: 1
-*/
-
-
-// Try to Update many items that not exist.
-valueToUpdate = {
-    name: 'SkyWalker'
-};
-
-filters = {
-    id: { value: 100, type: 'greater' }
-};
-
-// Will try to update rows with ID greater than 100 and change name for 'SkyWalker'
-updatedItems = await modelQueryBuilder.update(valueToUpdate, filters);
-/*
-    Response: ''
-*/
-
-//Try to update many items
-valueToUpdate = {
-    name: 'Some DC Villain'
-};
-
-filters = {
-    id: { value: 8, type: 'greater' }
-};
-
-// Will try to update rows with ID greater than 8 and change name for 'Some DC Villain'
-updatedItems = await modelQueryBuilder.update(valueToUpdate, filters);
-/*
-    Response: 2
-*/
-
-// REMOVE
-filters = {
-    id: { value: 10 }
-}
-
-// Remove all items that ID is equal to 10
-const removeItems = await modelQueryBuilder.remove(filters);
-/*
-    Response:
-    [   
-        {
-            fieldCount: 0,
-            affectedRows: 1,
-            insertId: 0,
-            info: '',
-            serverStatus:2,
-            warningStatus: 0
-        },
-        undefined
-    ]
-*/
-
-// GET
-
-// Get all Items and every Field saved.
-let results = await modelQueryBuilder.get();
-/*
-    Response: 
-    [
-        { id: 1, name 'Batman' },
-        { id: 2, name 'Superman' },
-        { id: 3, name: 'Ironman' },
-        { id: 4, name: 'Spiderman' },
-        { id: 5, name: 'Green Lantern' },
-        { id: 6, name: 'Ironman' },
-        { id: 7, name: 'Spiderman' },
-        { id: 8, name: 'John Constatine'},
-        { id: 9, name: 'Some DC Villain'}
-    ]
-*/
-
-// Get all Items and one Field saved.
-
-let params = {
-    fields : ['name']
-}
-
-let results = await modelQueryBuilder.get(params);
-/*
-    Response: 
-    [
-        { name 'Batman' },
-        { name 'Superman' },
-        { name: 'Ironman' },
-        { name: 'Spiderman' },
-        { name: 'Green Lantern' },
-        { name: 'Ironman' },
-        { name: 'Spiderman' },
-        { name: 'John Constatine'},
-        { name: 'Some DC Villain'}
-    ]
-*/
-
-// Get all Items and one Field saved.
-
-params = {
-    fields : ['name']
-}
-
-results = await modelQueryBuilder.get(params);
-/*
-    Response: 
-    [
-        { name 'Batman' },
-        { name 'Superman' },
-        { name: 'Ironman' },
-        { name: 'Spiderman' },
-        { name: 'Green Lantern' },
-        { name: 'Ironman' },
-        { name: 'Spiderman' },
-        { name: 'John Constatine'},
-        { name: 'Some DC Villain'}
-    ]
-*/
-
-// Get the count of items.
-
-params = {
-    fields : ['name'],
-    count: true
-}
-
-results = await modelQueryBuilder.get(params);
-/*
-    Response: 
-    [
-        { name 'Batman', count: 9 }
-    ]
-*/
-
-// Get with filters
-
-params = {
-    fields : ['name'],
-    filters : {
-        id: { value: 5, type: 'lesser' }
-    }
-}
-
-results = await modelQueryBuilder.get(params);
-/*
-    Response: 
-    [
-        { name 'Batman' },
-        { name 'Superman' },
-        { name: 'Ironman' },
-        { name: 'Spiderman' }
-    ]
-*/
-
-// Get with Limit
-
-params = {
-    fields : ['name'],
-    limit: 4
-}
-
-results = await modelQueryBuilder.get(params);
-/*
-    Response: 
-    [
-        { name 'Batman' },
-        { name 'Superman' },
-        { name: 'Ironman' },
-        { name: 'Spiderman' }
-    ]
-*/
-
-// Get with Limit and Page
-
-params = {
-    fields : ['name'],
-    limit: 4,
-    page: 2
-}
-
-results = await modelQueryBuilder.get(params);
-/*
-    Response: 
-    [
-        { name: 'Green Lantern' },
-        { name: 'Ironman' },
-        { name: 'Spiderman' },
-        { name: 'John Constatine'}
-    ]
-*/
+// Get with options
+// params, object with the options define
+const results = await queryBuilder.get(params);
 
 ```
