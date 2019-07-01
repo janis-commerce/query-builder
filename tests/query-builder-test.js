@@ -198,7 +198,7 @@ describe('QueryBuilder', () => {
 		});
 	});
 
-	describe('Build', () => {
+	/* describe('Build', () => {
 
 		it('Should init knex with table \'foo\'', () => {
 
@@ -218,7 +218,7 @@ describe('QueryBuilder', () => {
 			queryBuilder.params = { debug: true };
 			queryBuilder._build();
 		});
-	});
+	}); */
 
 	describe('Get Fields', () => {
 
@@ -290,6 +290,13 @@ describe('QueryBuilder', () => {
 			queryBuilder.get({ fields: ['foo'] });
 
 			assert(executeSpy.returnValues[0] instanceof Promise);
+		});
+
+		it('Should build normaly when debug mode on', () => {
+
+			const queryBuilder = queryBuilderFactory();
+			const params = { debug: true };
+			queryBuilder.get(params);
 		});
 	});
 

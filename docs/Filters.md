@@ -116,9 +116,8 @@ Use `type` key in the `filter` object with some of these:
         }
     }
 
-    const query = new QueryBuilder(knex,someModel,parametres);
-    query.build();
-    const results = await query.execute();
+    const query = new QueryBuilder(knex, someModel);
+    const results = await query.get(parametres);
     ```
 
     The query is :
@@ -139,7 +138,7 @@ Use `type` key in the `filter` object with some of these:
         }
     }
 
-    const query = new QueryBuilder(knex,someModel);
+    const query = new QueryBuilder(knex, someModel);
     const results = await query.get(parametres);
     ```
 
@@ -160,7 +159,7 @@ Use `type` key in the `filter` object with some of these:
         }
     }
 
-    const query = new QueryBuilder(knex,someModel);
+    const query = new QueryBuilder(knex, someModel);
     const results = await query.get(parametres);
     ```
 
@@ -181,7 +180,7 @@ Use `type` key in the `filter` object with some of these:
         }
     }
 
-    const query = new QueryBuilder(knex,someModel);
+    const query = new QueryBuilder(knex, someModel);
     const results = await query.get(parametres);
     ```
 
@@ -202,7 +201,7 @@ Use `type` key in the `filter` object with some of these:
         }
     }
 
-    const query = new QueryBuilder(knex,someModel);
+    const query = new QueryBuilder(knex, someModel);
     const results = await query.get(parametres);
     ```
 
@@ -223,7 +222,7 @@ Use `type` key in the `filter` object with some of these:
         }
     }
 
-    const query = new QueryBuilder(knex,someModel);
+    const query = new QueryBuilder(knex, someModel);
     const results = await query.get(parametres);
     ```
 
@@ -244,7 +243,7 @@ Use `type` key in the `filter` object with some of these:
         }
     }
 
-    const query = new QueryBuilder(knex,someModel);
+    const query = new QueryBuilder(knex, someModel);
     const results = await query.get(parametres);
     ```
 
@@ -265,7 +264,7 @@ Use `type` key in the `filter` object with some of these:
         }
     }
 
-    const query = new QueryBuilder(knex,someModel);
+    const query = new QueryBuilder(knex, someModel);
     const results = await query.get(parametres);
     ```
 
@@ -286,7 +285,7 @@ Use `type` key in the `filter` object with some of these:
         }
     }
 
-    const query = new QueryBuilder(knex,someModel);
+    const query = new QueryBuilder(knex, someModel);
     const results = await query.get(parametres);
     ```
 
@@ -307,7 +306,7 @@ Use `type` key in the `filter` object with some of these:
         }
     }
 
-    const query = new QueryBuilder(knex,someModel);
+    const query = new QueryBuilder(knex, someModel);
     const results = await query.get(parametres);
     ```
 
@@ -328,7 +327,7 @@ Use `type` key in the `filter` object with some of these:
         }
     }
 
-    const query = new QueryBuilder(knex,someModel);
+    const query = new QueryBuilder(knex, someModel);
     const results = await query.get(parametres);
     ```
 
@@ -351,7 +350,7 @@ Use `group` *key* to group by fields. It's SQL equivalent to `GROUP BY`.
         }
     }
 
-    const query = new QueryBuilder(knex,someModel);
+    const query = new QueryBuilder(knex, someModel);
     const results = await query.get(parametres);
     ```
 
@@ -370,7 +369,7 @@ Use `group` *key* to group by fields. It's SQL equivalent to `GROUP BY`.
         }
     }
 
-    const query = new QueryBuilder(knex,someModel);
+    const query = new QueryBuilder(knex, someModel);
     const results = await query.get(parametres);
     ```
 
