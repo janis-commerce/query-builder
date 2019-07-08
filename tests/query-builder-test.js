@@ -198,28 +198,6 @@ describe('QueryBuilder', () => {
 		});
 	});
 
-	/* describe('Build', () => {
-
-		it('Should init knex with table \'foo\'', () => {
-
-			const knexSpy = sinon.stub();
-			knexSpy.returns({ select() {} });
-
-			const queryBuilder = queryBuilderFactory({ table: 'foo', knexSpy });
-			queryBuilder.params = {};
-			queryBuilder._build();
-
-			assert(knexSpy.calledOnce);
-			assert.deepEqual(knexSpy.args[0][0], { t: 'foo' });
-		});
-
-		it('Should build normaly when debug mode on', () => {
-			const queryBuilder = queryBuilderFactory();
-			queryBuilder.params = { debug: true };
-			queryBuilder._build();
-		});
-	}); */
-
 	describe('Get Fields', () => {
 
 		it('Should return Fields from Database', async () => {
