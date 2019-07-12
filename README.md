@@ -1,7 +1,7 @@
 # query-builder
 
-[![Build Status](https://travis-ci.org/janis-commerce/query-builder.svg?JCN-70-query-builder)](https://travis-ci.org/janis-commerce/query-builder)
-[![Coverage Status](https://coveralls.io/repos/github/janis-commerce/query-builder/badge.svg?branch=JCN-70-query-builder)](https://coveralls.io/github/janis-commerce/query-builder?branch=JCN-70-query-builder)
+[![Build Status](https://travis-ci.org/janis-commerce/query-builder.svg?master)](https://travis-ci.org/janis-commerce/query-builder)
+[![Coverage Status](https://coveralls.io/repos/github/janis-commerce/query-builder/badge.svg?branch=master)](https://coveralls.io/github/janis-commerce/query-builder?branch=master)
 
 Prepare and execute SELECT, INSERT, UPDATE, REMOVE queries from SQL database.
 
@@ -34,7 +34,7 @@ You must have installed both `Knex` and `SQL` driver you will use and tables cre
     - **Returns**, an `array`, depends on SQL-Database you will use [See More Details](https://knexjs.org/#Builder-insert).
 
 * `save(items)` **ASYNCHRONOUS**, Execute *INSERT* Query with *Upsert* (Updated de duplicate rows, and insert the new ones).
-    
+
     - `items` - Object to Insert or Array of Objects to Insert.
     - **Returns**, `object` depends on SQL-Database-Druver you will use.
 
@@ -135,7 +135,7 @@ const QueryBuilder = require('@janniscommerce/query-builder');
 const queryBuilder = new QueryBuilder(knex, model);
 
 // Insert Items
-// item an object with valid fields 
+// item an object with valid fields
 // Could be multiple items
 await queryBuilder.insert(item);
 
