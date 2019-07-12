@@ -26,7 +26,7 @@ You must have installed both `Knex` and `SQL` driver you will use and tables cre
 * `new QueryBuilder(knex, models)`, Query Builder constructor.
 
     - `knex`, [Knex module](https://knexjs.org/) with the initial configuration.
-    - `model` Model instance. The Model must have table, field, joins, etc. structure define. [See more](https://github.com/janis-commerce/model-controller)
+    - `model` Model instance. The Model must have table, field, joins, etc. structure define. [See more](https://github.com/janis-commerce/model)
 
 * `insert(items)` **ASYNCHRONOUS**, Execute *INSERT* Query.
 
