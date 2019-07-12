@@ -21,3 +21,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Removed
 - `Query Builder` *build* and *execute* methods removed.
+
+## [Unreleased]
+### Changed
+- moved `utils/` to `/lib`
+- fixed links in `README.md`

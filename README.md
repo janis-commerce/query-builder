@@ -4,7 +4,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/janis-commerce/query-builder/badge.svg?branch=master)](https://coveralls.io/github/janis-commerce/query-builder?branch=master)
 
 Prepare and execute SELECT, INSERT, UPDATE, REMOVE queries from SQL database.
-
+ 
 - - -
 
 ## Instalation
