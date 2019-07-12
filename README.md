@@ -63,37 +63,37 @@ You must have installed both `Knex` and `SQL` driver you will use and tables cre
 
 To select a specific field, use `fields` as *key* with the selected fields.
 
-See [More](https://github.com/janis-commerce/query-builder/docs/Fields.md)
+See [More](https://github.com/janis-commerce/query-builder/blob/master/docs/Fields.md)
 
 ### Special Functions
 
 It's posible add special functions in the queries, as a *key* in `parametres` object.
 
-See [More](https://github.com/janis-commerce/query-builder/docs/Special-functions.md)
+See [More](https://github.com/janis-commerce/query-builder/blob/master/docs/Special-functions.md)
 
 ### Joins
 
 To join tables, use `joins` as *key*.
 
-See [More](https://github.com/janis-commerce/query-builder/docs/Joins.md)
+See [More](https://github.com/janis-commerce/query-builder/blob/master/docs/Joins.md)
 
 ### Filters
 
 To filter by fields, use `filters` as *key*.
 
-See [More](https://github.com/janis-commerce/query-builder/docs/Filters.md)
+See [More](https://github.com/janis-commerce/query-builder/blob/master/docs/Filters.md)
 
 ### Order
 
 To order, use `order` *key*.
 
-See [More](https://github.com/janis-commerce/query-builder/docs/Orders.md)
+See [More](https://github.com/janis-commerce/query-builder/blob/master/docs/Orders.md)
 
 ### Pagination
 
 To use pagination, use `limit` and `page` *keys*.
 
-See [More](https://github.com/janis-commerce/query-builder/docs/Pagination.md)
+See [More](https://github.com/janis-commerce/query-builder/blob/master/docs/Pagination.md)
 
 - - -
 
@@ -124,7 +124,7 @@ The codes are the following:
 
 ## Usage
 
-If you want an example using **MySQL**. [See Here](https://github.com/janis-commerce/query-builder/docs/MySQL.md)
+If you want an example using **MySQL**. [See Here](https://github.com/janis-commerce/query-builder/blob/master/docs/MySQL.md)
 
 ```javascript
 const QueryBuilder = require('@janniscommerce/query-builder');
