@@ -45,9 +45,6 @@ const makeModel = ({
 			return joins;
 		}
 
-		addDbName(t) {
-			return t;
-		}
 	}
 
 	return new FakeModel();

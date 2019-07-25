@@ -95,10 +95,6 @@ const makeModel = ({
 		static get joins() {
 			return joins;
 		}
-
-		addDbName(t) {
-			return t;
-		}
 	}
 
 	return new FakeModel();
@@ -135,9 +131,6 @@ function queryBuilderFactory({
 			return joins;
 		}
 
-		addDbName(t) {
-			return t;
-		}
 	}
 
 	const knex = knexSpy || makeKnexFunction();
