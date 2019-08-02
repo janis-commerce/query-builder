@@ -239,6 +239,167 @@ describe('QueryBuilder', () => {
 		});
 	});
 
+	describe.only('Automatic Joins', () => {
+
+		const profileTable = 'ProfileTable';
+		const clientTable = 'ClientTable';
+		const randomTable = 'RandomTable';
+
+		const queryBuilder = queryBuilderFactory({
+			fields: {
+				id: true,
+				name: true,
+				profile: { table: profileTable },
+				client: { table: clientTable },
+				random: { table: randomTable },
+				storename: { table: clientTable }
+			}
+		});
+
+		let params;
+
+		beforeEach(() => {
+			params = {};
+		});
+
+		context('when params are empty objects or trying to select All', () => {
+
+			it('Should return the same params object when params are empty', () => {
+				params = {};
+
+				assert.deepEqual(queryBuilder.prepareParams(params), params);
+			});
+
+			it('Should return empty object, ignoring joins when params only has joins key', () => {
+				params.joins = ['NpsTable'];
+
+				assert.deepEqual(queryBuilder.prepareParams(params), {});
+			});
+
+			it('Should return the same params object when params only has \'fields: false\'', () => {
+				params = {
+					fields: false
+				};
+
+				assert.deepEqual(queryBuilder.prepareParams(params), params);
+			});
+		});
+
+		context('when params have fields', () => {
+			params = {
+				joins: randomTable
+			};
+
+			let fields;
+
+			it('should return params with fields and no joins', () => {
+				fields = ['id', 'name'];
+				params.fields = fields;
+
+				assert.deepEqual(queryBuilder.prepareParams(params), { fields });
+			});
+
+			it('should return params with fields and joins with the table from fields', () => {
+				fields = ['id', 'name', 'profile'];
+				params.fields = fields;
+
+				assert.deepEqual(queryBuilder.prepareParams(params), { fields, joins: [profileTable] });
+			});
+
+			it('should return params with fields and joins with the tables from fields ', () => {
+				fields = ['id', 'name', 'profile', 'client'];
+				params.fields = fields;
+
+				assert.deepEqual(queryBuilder.prepareParams(params), { fields, joins: [profileTable, clientTable] });
+			});
+
+		});
+
+		context('when params have order', () => {
+
+			params = {
+				joins: randomTable
+			};
+
+			let order;
+
+			it('should return params with order and no joins, using a single field', () => {
+				order = 'id';
+				params.order = order;
+
+				assert.deepEqual(queryBuilder.prepareParams(params), { order });
+			});
+
+			it('should return params with order and joins, using a single field', () => {
+				order = 'profile';
+				params.order = order;
+
+				assert.deepEqual(queryBuilder.prepareParams(params), { order, joins: [profileTable] });
+			});
+
+			it('should return params with order and no joins, using multiple orders', () => {
+				order = ['id', 'name'];
+				params.order = order;
+
+				assert.deepEqual(queryBuilder.prepareParams(params), { order });
+			});
+
+			it('should return params with order and joins, using multiple orders', () => {
+				order = ['id', 'name', 'profile'];
+				params.order = order;
+
+				assert.deepEqual(queryBuilder.prepareParams(params), { order, joins: [profileTable] });
+			});
+
+			it('should return params with order and joins, using multiple orders', () => {
+				order = ['id', 'name', 'profile', 'client'];
+				params.order = order;
+
+				assert.deepEqual(queryBuilder.prepareParams(params), { order, joins: [profileTable, clientTable] });
+			});
+
+		});
+
+		context('when params have group', () => {});
+
+		context('when params have filters', () => {});
+
+		context('when params have special functions', () => {});
+
+		context('when params have everything', () => {});
+
+
+		it('Should return the same params object when params are empty', () => {
+			params = {};
+
+			assert.deepEqual(queryBuilder.prepareParams(params), params);
+		});
+
+		it('Should return the same params object when params are empty', () => {
+			params = {};
+
+			assert.deepEqual(queryBuilder.prepareParams(params), params);
+		});
+
+		it('Should return the same params object when params are empty', () => {
+			params = {};
+
+			assert.deepEqual(queryBuilder.prepareParams(params), params);
+		});
+
+		it('Should return the same params object when params are empty', () => {
+			params = {};
+
+			assert.deepEqual(queryBuilder.prepareParams(params), params);
+		});
+
+		it('Should return the same params object when params are empty', () => {
+			params = {};
+
+			assert.deepEqual(queryBuilder.prepareParams(params), params);
+		});
+	});
+
 	describe('Get', () => {
 
 		it('Should return knexStatement', () => {
