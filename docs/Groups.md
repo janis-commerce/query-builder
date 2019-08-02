@@ -6,9 +6,7 @@ Use `group` *key* to group by fields. It's SQL equivalent to `GROUP BY`.
 
     ```javascript
     const parametres = {
-        filters: { 
-            group: 'some'
-        }
+        group: 'some'
     }
 
     const query = new QueryBuilder(knex,someModel);
@@ -25,9 +23,7 @@ Use `group` *key* to group by fields. It's SQL equivalent to `GROUP BY`.
 
     ```javascript
     const parametres = {
-        filters: { 
-            group: ['some', 'other']
-        }
+        group: ['some', 'other']
     }
 
     const query = new QueryBuilder(knex,someModel);
