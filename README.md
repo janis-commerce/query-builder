@@ -73,7 +73,7 @@ See [More](https://github.com/janis-commerce/query-builder/blob/master/docs/Spec
 
 ### Joins
 
-To join tables, use `joins` as *key*.
+Joins are Automatic.
 
 See [More](https://github.com/janis-commerce/query-builder/blob/master/docs/Joins.md)
 
@@ -149,7 +149,7 @@ await queryBuilder.update(values, filters);
 
 // Remove any Items
 // joins, object with table joins define if it's possible
-await queryBuilder.remove(filters, joins);
+await queryBuilder.remove(filters);
 
 // Get Items
 // Get All

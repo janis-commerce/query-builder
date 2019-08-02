@@ -2,23 +2,6 @@
 
 > First, Fields and Join config must be define in **Model** structure.
 
-If you want to join a table, use a `joins` as *key* and `Array` of `String` with the table names as *value*.
-
-```javascript
-parametres = {
-    joins : ['tableB', 'tableC']
-}
-
-const query = new QueryBuilder(knex,someModel);
-const results = await query.get({ joins: ['tableB'] });
-```
-
-The query is :
-
-```sql
-select * from `table` as `t` left join `table_b` as `tb` on `t`.`some` = `tb`.`any`;
-```
-
 ## Model
 
 In the model must be an structured like this:
@@ -40,11 +23,31 @@ In the model must be an structured like this:
             tableB: {
                 table: 'tableB',
                 alias: 'tb',
-                on: ['foo', 'bar']
+                on: ['bar', 'foo']
             }
         };
     };
 ```
+
+## Usage
+
+The Joins are **Automatic**.
+
+```javascript
+parametres = {
+    fields : ['bar']
+}
+
+const query = new QueryBuilder(knex,someModel);
+const results = await query.get(parametres);
+```
+
+The query is :
+
+```sql
+select `tb.bar` from `table` as `t` left join `table_b` as `tb` on `t`.`foo` = `tb`.`bar`;
+```
+
 - - -
 
 
