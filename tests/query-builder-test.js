@@ -239,7 +239,7 @@ describe('QueryBuilder', () => {
 		});
 	});
 
-	describe.only('Automatic Joins', () => {
+	describe('Automatic Joins', () => {
 
 		const profileTable = 'ProfileTable';
 		const clientTable = 'ClientTable';
@@ -251,8 +251,7 @@ describe('QueryBuilder', () => {
 				name: true,
 				profile: { table: profileTable },
 				client: { table: clientTable },
-				random: { table: randomTable },
-				storename: { table: clientTable }
+				random: { table: randomTable }
 			}
 		});
 
@@ -315,8 +314,52 @@ describe('QueryBuilder', () => {
 
 		});
 
-		context('when params have order', () => {
+		context('when params have group', () => {
 
+			params = {
+				joins: randomTable
+			};
+
+			let group;
+
+			it('should return params with group and no joins, using a single field', () => {
+				group = 'id';
+				params.group = group;
+
+				assert.deepEqual(queryBuilder.prepareParams(params), { group });
+			});
+
+			it('should return params with group and joins, using a single field', () => {
+				group = 'profile';
+				params.group = group;
+
+				assert.deepEqual(queryBuilder.prepareParams(params), { group, joins: [profileTable] });
+			});
+
+			it('should return params with group and no joins, using multiple group by', () => {
+				group = ['id', 'name'];
+				params.group = group;
+
+				assert.deepEqual(queryBuilder.prepareParams(params), { group });
+			});
+
+			it('should return params with group and joins, using multiple group by', () => {
+				group = ['id', 'name', 'profile'];
+				params.group = group;
+
+				assert.deepEqual(queryBuilder.prepareParams(params), { group, joins: [profileTable] });
+			});
+
+			it('should return params with group and joins, using multiple group by', () => {
+				group = ['id', 'name', 'profile', 'client'];
+				params.group = group;
+
+				assert.deepEqual(queryBuilder.prepareParams(params), { group, joins: [profileTable, clientTable] });
+			});
+
+		});
+
+		context('when params have order', () => {
 			params = {
 				joins: randomTable
 			};
@@ -338,21 +381,34 @@ describe('QueryBuilder', () => {
 			});
 
 			it('should return params with order and no joins, using multiple orders', () => {
-				order = ['id', 'name'];
+				order = {
+					id: 'asc',
+					name: 'desc'
+				};
+
 				params.order = order;
 
 				assert.deepEqual(queryBuilder.prepareParams(params), { order });
 			});
 
 			it('should return params with order and joins, using multiple orders', () => {
-				order = ['id', 'name', 'profile'];
+				order = {
+					id: 'asc',
+					name: 'desc',
+					profile: 'asc'
+				};
 				params.order = order;
 
 				assert.deepEqual(queryBuilder.prepareParams(params), { order, joins: [profileTable] });
 			});
 
-			it('should return params with order and joins, using multiple orders', () => {
-				order = ['id', 'name', 'profile', 'client'];
+			it('should return params with order and joins, using multiple orders and tables', () => {
+				order = {
+					id: 'asc',
+					name: 'desc',
+					profile: 'asc',
+					client: 'desc'
+				};
 				params.order = order;
 
 				assert.deepEqual(queryBuilder.prepareParams(params), { order, joins: [profileTable, clientTable] });
@@ -360,43 +416,138 @@ describe('QueryBuilder', () => {
 
 		});
 
-		context('when params have group', () => {});
+		context('when params have filters', () => {
 
-		context('when params have filters', () => {});
+			params = {
+				joins: randomTable
+			};
 
-		context('when params have special functions', () => {});
+			let filters;
 
-		context('when params have everything', () => {});
+			it('should return only filter without joins if fields don\'t required another table', () => {
+				filters = {
+					name: 'fizzmod'
+				};
+				params.filters = filters;
 
+				assert.deepEqual(queryBuilder.prepareParams(params), { filters });
+			});
 
-		it('Should return the same params object when params are empty', () => {
-			params = {};
+			it('should return only multiple filter without joins if fields don\'t required another table', () => {
+				filters = {
+					name: 'fizzmod',
+					id: { value: 10, type: 'greater' }
+				};
+				params.filters = filters;
 
-			assert.deepEqual(queryBuilder.prepareParams(params), params);
+				assert.deepEqual(queryBuilder.prepareParams(params), { filters });
+			});
+
+			it('should return filter with joins if fields required another table', () => {
+				filters = {
+					profile: 1523
+				};
+				params.filters = filters;
+
+				assert.deepEqual(queryBuilder.prepareParams(params), { filters, joins: [profileTable] });
+			});
+
+			it('should return multiple filter with joins if fields required another table', () => {
+				filters = {
+					name: { value: 'Ar', type: 'search' },
+					profile: 1523,
+					client: { value: 2123312, type: 'lesser' }
+				};
+				params.filters = filters;
+
+				assert.deepEqual(queryBuilder.prepareParams(params), { filters, joins: [profileTable, clientTable] });
+			});
+
+			it('should return multiple filter with joins if fields required another table, using OR', () => {
+				filters = [
+					{ name: { value: 'Ar', type: 'search' } },
+					{ profile: 1523 },
+					{ client: { value: 2123312, type: 'lesser' } }
+				];
+				params.filters = filters;
+
+				assert.deepEqual(queryBuilder.prepareParams(params), { filters, joins: [profileTable, clientTable] });
+			});
+
 		});
 
-		it('Should return the same params object when params are empty', () => {
-			params = {};
+		context('when params have special functions', () => {
 
-			assert.deepEqual(queryBuilder.prepareParams(params), params);
-		});
+			let field;
 
-		it('Should return the same params object when params are empty', () => {
-			params = {};
+			let result;
 
-			assert.deepEqual(queryBuilder.prepareParams(params), params);
-		});
+			beforeEach(() => {
+				params = {
+					joins: randomTable
+				};
 
-		it('Should return the same params object when params are empty', () => {
-			params = {};
+				result = {};
+			});
 
-			assert.deepEqual(queryBuilder.prepareParams(params), params);
-		});
+			['count', 'min', 'max', 'sum', 'avg'].forEach(spFun => {
+				describe(`${spFun}`, () => {
+					it('should return the function without joins if field no required another table', () => {
+						field = 'id';
+						params[spFun] = field;
 
-		it('Should return the same params object when params are empty', () => {
-			params = {};
+						result[spFun] = field;
 
-			assert.deepEqual(queryBuilder.prepareParams(params), params);
+						assert.deepEqual(queryBuilder.prepareParams(params), result);
+					});
+
+					it('should return the function with joins if field required another table', () => {
+						field = 'profile';
+						params[spFun] = field;
+
+						result[spFun] = field;
+						result.joins = [profileTable];
+
+						assert.deepEqual(queryBuilder.prepareParams(params), result);
+					});
+
+					it('should return the function and alias without joins if field no required another table', () => {
+						field = 'id';
+						params[spFun] = {
+							field,
+							alias: `${spFun}Function`
+
+						};
+
+						result[spFun] = {
+							field,
+							alias: `${spFun}Function`
+
+						};
+
+						assert.deepEqual(queryBuilder.prepareParams(params), result);
+					});
+
+					it('should return the function and alias with joins if field required another table', () => {
+						field = 'profile';
+						params[spFun] = {
+							field,
+							alias: `${spFun}Function`
+
+						};
+
+						result[spFun] = {
+							field,
+							alias: `${spFun}Function`
+
+						};
+						result.joins = [profileTable];
+
+						assert.deepEqual(queryBuilder.prepareParams(params), result);
+					});
+				});
+			});
+
 		});
 	});
 
