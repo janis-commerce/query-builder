@@ -144,7 +144,7 @@ describe('QueryBuilder', () => {
 
 	describe('Constructor', () => {
 
-		it('Should construct a QueryBuilder with base params', () => {
+		it('Should construct a QueryBuilder with base parameters', () => {
 
 			const fakeTable = 'fake_table';
 			const fakeFields = {
@@ -255,150 +255,150 @@ describe('QueryBuilder', () => {
 			}
 		});
 
-		const paramsBuilder = (params = {}) => {
-			params.joins = [randomTable];
-			return params;
+		const paramsBuilder = (parameters = {}) => {
+			parameters.joins = [randomTable];
+			return parameters;
 		};
 
-		context('when params are empty objects or trying to select All', () => {
+		context('when parameters are empty objects or trying to select All', () => {
 
-			it('Should return the same params object when params are empty', () => {
-				const params = {};
+			it('Should return the same parameters object when parameters are empty', () => {
+				const parameters = {};
 
-				assert.deepEqual(queryBuilder.prepareParams(params), params);
+				assert.deepEqual(queryBuilder.prepareParams(parameters), parameters);
 			});
 
-			it('Should return empty object, ignoring joins when params only has joins key', () => {
-				const params = {
+			it('Should return empty object, ignoring joins when parameters only has joins key', () => {
+				const parameters = {
 					joins: ['NpsTable']
 				};
 
-				assert.deepEqual(queryBuilder.prepareParams(params), {});
+				assert.deepEqual(queryBuilder.prepareParams(parameters), {});
 			});
 
-			it('Should return the same params object when params only has \'fields: false\'', () => {
-				const params = {
+			it('Should return the same parameters object when parameters only has \'fields: false\'', () => {
+				const parameters = {
 					fields: false
 				};
 
-				assert.deepEqual(queryBuilder.prepareParams(params), params);
+				assert.deepEqual(queryBuilder.prepareParams(parameters), parameters);
 			});
 		});
 
-		context('when params have fields', () => {
+		context('when parameters have fields', () => {
 
-			it('should return params with fields and no joins', () => {
+			it('should return parameters with fields and no joins', () => {
 				const fields = ['id', 'name'];
 
-				const params = paramsBuilder({ fields });
+				const parameters = paramsBuilder({ fields });
 
-				assert.deepEqual(queryBuilder.prepareParams(params), { fields });
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { fields });
 			});
 
-			it('should return params with fields and joins with the table from fields', () => {
+			it('should return parameters with fields and joins with the table from fields', () => {
 				const fields = ['id', 'name', 'profile'];
 
-				const params = paramsBuilder({ fields });
+				const parameters = paramsBuilder({ fields });
 
-				assert.deepEqual(queryBuilder.prepareParams(params), { fields, joins: [profileTable] });
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { fields, joins: [profileTable] });
 			});
 
-			it('should return params with fields and joins with the tables from fields ', () => {
+			it('should return parameters with fields and joins with the tables from fields ', () => {
 				const fields = ['id', 'name', 'profile', 'client'];
 
-				const params = paramsBuilder({ fields });
+				const parameters = paramsBuilder({ fields });
 
-				assert.deepEqual(queryBuilder.prepareParams(params), { fields, joins: [profileTable, clientTable] });
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { fields, joins: [profileTable, clientTable] });
 			});
 
 		});
 
-		context('when params have group', () => {
+		context('when parameters have group', () => {
 
-			it('should return params with group and no joins, using a single field', () => {
+			it('should return parameters with group and no joins, using a single field', () => {
 				const group = 'id';
 
-				const params = paramsBuilder({ group });
+				const parameters = paramsBuilder({ group });
 
-				assert.deepEqual(queryBuilder.prepareParams(params), { group });
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { group });
 			});
 
-			it('should return params with group and joins, using a single field', () => {
+			it('should return parameters with group and joins, using a single field', () => {
 				const group = 'profile';
 
-				const params = paramsBuilder({ group });
+				const parameters = paramsBuilder({ group });
 
-				assert.deepEqual(queryBuilder.prepareParams(params), { group, joins: [profileTable] });
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { group, joins: [profileTable] });
 			});
 
-			it('should return params with group and no joins, using multiple group by', () => {
+			it('should return parameters with group and no joins, using multiple group by', () => {
 				const group = ['id', 'name'];
 
-				const params = paramsBuilder({ group });
+				const parameters = paramsBuilder({ group });
 
-				assert.deepEqual(queryBuilder.prepareParams(params), { group });
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { group });
 			});
 
-			it('should return params with group and joins, using multiple group by', () => {
+			it('should return parameters with group and joins, using multiple group by', () => {
 				const group = ['id', 'name', 'profile'];
 
-				const params = paramsBuilder({ group });
+				const parameters = paramsBuilder({ group });
 
-				assert.deepEqual(queryBuilder.prepareParams(params), { group, joins: [profileTable] });
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { group, joins: [profileTable] });
 			});
 
-			it('should return params with group and joins, using multiple group by', () => {
+			it('should return parameters with group and joins, using multiple group by', () => {
 				const group = ['id', 'name', 'profile', 'client'];
 
-				const params = paramsBuilder({ group });
+				const parameters = paramsBuilder({ group });
 
-				assert.deepEqual(queryBuilder.prepareParams(params), { group, joins: [profileTable, clientTable] });
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { group, joins: [profileTable, clientTable] });
 			});
 
 		});
 
-		context('when params have order', () => {
+		context('when parameters have order', () => {
 
-			it('should return params with order and no joins, using a single field', () => {
+			it('should return parameters with order and no joins, using a single field', () => {
 				const order = 'id';
 
-				const params = paramsBuilder({ order });
+				const parameters = paramsBuilder({ order });
 
-				assert.deepEqual(queryBuilder.prepareParams(params), { order });
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { order });
 			});
 
-			it('should return params with order and joins, using a single field', () => {
+			it('should return parameters with order and joins, using a single field', () => {
 				const order = 'profile';
 
-				const params = paramsBuilder({ order });
+				const parameters = paramsBuilder({ order });
 
-				assert.deepEqual(queryBuilder.prepareParams(params), { order, joins: [profileTable] });
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { order, joins: [profileTable] });
 			});
 
-			it('should return params with order and no joins, using multiple orders', () => {
+			it('should return parameters with order and no joins, using multiple orders', () => {
 				const order = {
 					id: 'asc',
 					name: 'desc'
 				};
 
-				const params = paramsBuilder({ order });
+				const parameters = paramsBuilder({ order });
 
-				assert.deepEqual(queryBuilder.prepareParams(params), { order });
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { order });
 			});
 
-			it('should return params with order and joins, using multiple orders', () => {
+			it('should return parameters with order and joins, using multiple orders', () => {
 				const order = {
 					id: 'asc',
 					name: 'desc',
 					profile: 'asc'
 				};
 
-				const params = paramsBuilder({ order });
+				const parameters = paramsBuilder({ order });
 
-				assert.deepEqual(queryBuilder.prepareParams(params), { order, joins: [profileTable] });
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { order, joins: [profileTable] });
 			});
 
-			it('should return params with order and joins, using multiple orders and tables', () => {
+			it('should return parameters with order and joins, using multiple orders and tables', () => {
 				const order = {
 					id: 'asc',
 					name: 'desc',
@@ -406,23 +406,23 @@ describe('QueryBuilder', () => {
 					client: 'desc'
 				};
 
-				const params = paramsBuilder({ order });
+				const parameters = paramsBuilder({ order });
 
-				assert.deepEqual(queryBuilder.prepareParams(params), { order, joins: [profileTable, clientTable] });
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { order, joins: [profileTable, clientTable] });
 			});
 
 		});
 
-		context('when params have filters', () => {
+		context('when parameters have filters', () => {
 
 			it('should return only filter without joins if fields don\'t required another table', () => {
 				const filters = {
 					name: 'fizzmod'
 				};
 
-				const params = paramsBuilder({ filters });
+				const parameters = paramsBuilder({ filters });
 
-				assert.deepEqual(queryBuilder.prepareParams(params), { filters });
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { filters });
 			});
 
 			it('should return only multiple filter without joins if fields don\'t required another table', () => {
@@ -431,9 +431,9 @@ describe('QueryBuilder', () => {
 					id: { value: 10, type: 'greater' }
 				};
 
-				const params = paramsBuilder({ filters });
+				const parameters = paramsBuilder({ filters });
 
-				assert.deepEqual(queryBuilder.prepareParams(params), { filters });
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { filters });
 			});
 
 			it('should return filter with joins if fields required another table', () => {
@@ -441,9 +441,9 @@ describe('QueryBuilder', () => {
 					profile: 1523
 				};
 
-				const params = paramsBuilder({ filters });
+				const parameters = paramsBuilder({ filters });
 
-				assert.deepEqual(queryBuilder.prepareParams(params), { filters, joins: [profileTable] });
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { filters, joins: [profileTable] });
 			});
 
 			it('should return multiple filter with joins if fields required another table', () => {
@@ -453,9 +453,9 @@ describe('QueryBuilder', () => {
 					client: { value: 2123312, type: 'lesser' }
 				};
 
-				const params = paramsBuilder({ filters });
+				const parameters = paramsBuilder({ filters });
 
-				assert.deepEqual(queryBuilder.prepareParams(params), { filters, joins: [profileTable, clientTable] });
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { filters, joins: [profileTable, clientTable] });
 			});
 
 			it('should return multiple filter with joins if fields required another table, using OR', () => {
@@ -465,14 +465,14 @@ describe('QueryBuilder', () => {
 					{ client: { value: 2123312, type: 'lesser' } }
 				];
 
-				const params = paramsBuilder({ filters });
+				const parameters = paramsBuilder({ filters });
 
-				assert.deepEqual(queryBuilder.prepareParams(params), { filters, joins: [profileTable, clientTable] });
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { filters, joins: [profileTable, clientTable] });
 			});
 
 		});
 
-		context('when params have special functions', () => {
+		context('when parameters have special functions', () => {
 
 			['count', 'min', 'max', 'sum', 'avg'].forEach(specialFunction => {
 				describe(`${specialFunction}`, () => {
@@ -480,46 +480,46 @@ describe('QueryBuilder', () => {
 					it('should return the function without joins if field no required another table', () => {
 						const field = 'id';
 
-						const params = paramsBuilder();
-						params[specialFunction] = field;
+						const parameters = paramsBuilder();
+						parameters[specialFunction] = field;
 
 						const result = {};
 						result[specialFunction] = field;
 
-						assert.deepEqual(queryBuilder.prepareParams(params), result);
+						assert.deepEqual(queryBuilder.prepareParams(parameters), result);
 					});
 
 					it('should return the function without joins if function has bad format', () => {
 						const field = 'profile';
 
-						const params = paramsBuilder();
-						params[specialFunction] = [field];
+						const parameters = paramsBuilder();
+						parameters[specialFunction] = [field];
 
 						const result = {};
 						result[specialFunction] = [field];
 
-						assert.deepEqual(queryBuilder.prepareParams(params), result);
+						assert.deepEqual(queryBuilder.prepareParams(parameters), result);
 					});
 
 
 					it('should return the function with joins if field required another table', () => {
 						const field = 'profile';
 
-						const params = paramsBuilder();
-						params[specialFunction] = field;
+						const parameters = paramsBuilder();
+						parameters[specialFunction] = field;
 
 						const result = {};
 						result[specialFunction] = field;
 						result.joins = [profileTable];
 
-						assert.deepEqual(queryBuilder.prepareParams(params), result);
+						assert.deepEqual(queryBuilder.prepareParams(parameters), result);
 					});
 
 					it('should return the function and alias without joins if field no required another table', () => {
 						const field = 'id';
 
-						const params = paramsBuilder();
-						params[specialFunction] = {
+						const parameters = paramsBuilder();
+						parameters[specialFunction] = {
 							field,
 							alias: `${specialFunction}Function`
 
@@ -532,14 +532,14 @@ describe('QueryBuilder', () => {
 
 						};
 
-						assert.deepEqual(queryBuilder.prepareParams(params), result);
+						assert.deepEqual(queryBuilder.prepareParams(parameters), result);
 					});
 
 					it('should return the function and alias with joins if field required another table', () => {
 						const field = 'profile';
 
-						const params = paramsBuilder();
-						params[specialFunction] = {
+						const parameters = paramsBuilder();
+						parameters[specialFunction] = {
 							field,
 							alias: `${specialFunction}Function`
 
@@ -553,7 +553,7 @@ describe('QueryBuilder', () => {
 						};
 						result.joins = [profileTable];
 
-						assert.deepEqual(queryBuilder.prepareParams(params), result);
+						assert.deepEqual(queryBuilder.prepareParams(parameters), result);
 					});
 				});
 			});
@@ -588,8 +588,8 @@ describe('QueryBuilder', () => {
 		it('Should build normaly when debug mode on', () => {
 
 			const queryBuilder = queryBuilderFactory();
-			const params = { debug: true };
-			queryBuilder.get(params);
+			const parameters = { debug: true };
+			queryBuilder.get(parameters);
 		});
 	});
 
