@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## [1.3.1] - 2019-08-06
+## Fixed
+- Undefined `fields` doesn't break any more
+
 ## [1.3.0] - 2019-08-05
 ## Changed
 - `joins` are now added automatically based on fields, filters and other parameters
