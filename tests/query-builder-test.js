@@ -144,6 +144,32 @@ describe('QueryBuilder', () => {
 
 	describe('Constructor', () => {
 
+		it('Should construct a QueryBuilder with empty object as fields if they are not passed', () => {
+
+			const fakeTable = 'fake_table';
+			const fakeFlags = {
+				dummyField: { isDummy: 1 }
+			};
+			const fakeJoins = {
+				dummyTable: {
+					table: 'dummy_table',
+					alias: 'dt',
+					method: 'left',
+					on: ['dummyField', 'fakeField']
+				}
+			};
+
+			const queryBuilder = queryBuilderFactory({
+				table: fakeTable,
+				fields: null,
+				flags: fakeFlags,
+				joins: fakeJoins
+			});
+
+			assert.equal(queryBuilder.table, fakeTable);
+			assert.deepEqual(queryBuilder.fields, {});
+		});
+
 		it('Should construct a QueryBuilder with base parameters', () => {
 
 			const fakeTable = 'fake_table';
