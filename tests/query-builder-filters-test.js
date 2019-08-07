@@ -163,6 +163,34 @@ describe('Build Filters', () => {
 				fields: { id: 'id' }
 			});
 		});
+		it('Should call \'whereRaw\' knex method for flags filters and setted default value in flags if are incorrect type', () => {
+
+			model = makeModel({
+				fields: {
+					status: true,
+					isActive: true,
+					error: true
+				},
+				flags: {
+					status: { isActive: 1, error: 2 }
+				}
+			});
+
+			params = {
+				filters: { isActive: {}, error: { value: [] } }
+			};
+
+			QueryBuilderFilters.buildFilters(knex, model, params);
+
+			assert(knex.where.calledOnce);
+
+			const fakeKnex = callWhereCallback(knex);
+
+			assert.equal(fakeKnex.whereRaw.callCount, 2);
+			assert.deepEqual(fakeKnex.whereRaw.args[0], ['(t.status & 1) = ?', '1']);
+			assert.deepEqual(fakeKnex.whereRaw.args[1], ['(t.status & 2) = ?', '2']);
+
+		});
 
 	});
 
@@ -470,7 +498,7 @@ describe('Build Filters', () => {
 			});
 
 			params = {
-				filters: { isActive: 1, error: 0 }
+				filters: { isActive: 0, error: 0 }
 			};
 
 			QueryBuilderFilters.buildFilters(knex, model, params);
@@ -480,7 +508,7 @@ describe('Build Filters', () => {
 			const fakeKnex = callWhereCallback(knex);
 
 			assert.equal(fakeKnex.whereRaw.callCount, 2);
-			assert.deepEqual(fakeKnex.whereRaw.args[0], ['(t.status & 1) = ?', '1']);
+			assert.deepEqual(fakeKnex.whereRaw.args[0], ['(t.status & 1) = ?', '0']);
 			assert.deepEqual(fakeKnex.whereRaw.args[1], ['(t.status & 2) = ?', '0']);
 
 		});
