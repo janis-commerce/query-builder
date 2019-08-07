@@ -470,7 +470,7 @@ describe('Build Filters', () => {
 			});
 
 			params = {
-				filters: { isActive: true, error: false }
+				filters: { isActive: 1, error: 0 }
 			};
 
 			QueryBuilderFilters.buildFilters(knex, model, params);
