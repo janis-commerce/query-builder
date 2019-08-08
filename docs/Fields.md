@@ -21,7 +21,7 @@ In the model must be an structured like this:
 
     static get flags() {
         return {
-            foo: 1
+            foo: { isFoo: 1 }
         }
     }
 ```
@@ -79,6 +79,71 @@ The query is:
 
 ```sql
 select * from `table`;
+```
+- - -
+
+## Wildcard
+
+It's possible select every *field* from the **main table** using a wildcard,and add other fields, filters, etc.
+
+The wildcard is `*`.
+
+In the *model*
+
+```javascript
+    static get table() {
+        return 'personTable';
+    };
+    
+    static get fields() {
+        return {
+            id: true,
+            name: true,
+            lastname: true,
+            status: true,
+            company: true,
+            companyName: { table: 'companyTable' },
+            job: true,
+            jobName: { table: 'jobTable' }
+        };
+    };
+
+    static get flags() {
+        return {
+            status: { isActive: 1 }
+        }
+    }
+
+    static get joins() {
+        return {
+            companyTable: {
+                table: 'companyTable',
+                alias: 'ct',
+                on: ['company', 'companyName']
+            },
+            jobTable: {
+                table: 'jobTable',
+                alias: 'jt',
+                on: ['job', 'jobName']
+            }
+        }
+    }
+
+```
+
+```javascript
+const parametres = { 
+    fields: ['*','companyName']
+};
+
+const query = new QueryBuilder(knex,someModel);
+const results = await query.get(parametres);
+```
+
+The query is: 
+
+```sql
+select `t`.*, `ct`.`company_name` from `table` as `t` left join `company_table` as `ct` on `t`.`company` = `ct`.`company_name`;
 ```
 - - -
 
