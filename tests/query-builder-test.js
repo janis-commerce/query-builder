@@ -265,6 +265,145 @@ describe('QueryBuilder', () => {
 		});
 	});
 
+	describe('Wildcard', () => {
+
+		const profileTable = 'ProfileTable';
+		const clientTable = 'ClientTable';
+		const randomTable = 'RandomTable';
+
+		const queryBuilder = queryBuilderFactory({
+			fields: {
+				id: true,
+				name: true,
+				profile: { table: profileTable },
+				client: { table: clientTable },
+				random: { table: randomTable }
+			}
+		});
+
+		context('when no wildcard', () => {
+
+			it('should return empty string when no fields', () => {
+
+				const parameters = {};
+
+				const fields = queryBuilder.getFieldsFromWildcard(parameters);
+
+				assert.strictEqual(Array.isArray(fields), true);
+				assert.deepEqual(fields, []);
+			});
+
+			it('should return FALSE when fields are setted in False', () => {
+
+				const parameters = {
+					fields: false
+				};
+
+				const fields = queryBuilder.getFieldsFromWildcard(parameters);
+
+				assert.strictEqual(typeof fields, 'boolean');
+				assert.strictEqual(fields, false);
+			});
+
+			it('should return array of fields without changes', () => {
+
+				const parameters = {
+					fields: ['id', 'profile']
+				};
+
+				const fields = queryBuilder.getFieldsFromWildcard(parameters);
+
+				assert.strictEqual(Array.isArray(fields), true);
+				assert.deepEqual(fields, fields);
+			});
+
+			it('should return array of fields without repeat fields', () => {
+
+				const parameters = {
+					fields: ['id', 'profile', 'id', 'profile']
+				};
+
+				const fields = queryBuilder.getFieldsFromWildcard(parameters);
+
+				assert.strictEqual(Array.isArray(fields), true);
+				assert.deepEqual(fields, ['id', 'profile']);
+			});
+
+			it('should return empty array when fields is not an array', () => {
+
+				const parameters = {
+					fields: {
+						id: true
+					}
+				};
+
+				const fields = queryBuilder.getFieldsFromWildcard(parameters);
+
+				assert.strictEqual(Array.isArray(fields), true);
+				assert.deepEqual(fields, []);
+			});
+		});
+
+		context('when wildcard are added', () => {
+
+			it('should return all fields from main table', () => {
+				const parameters = {
+					fields: ['*']
+				};
+
+				const resultFields = ['id', 'name'];
+
+				const fields = queryBuilder.getFieldsFromWildcard(parameters);
+
+				assert.strictEqual(Array.isArray(fields), true);
+				assert.deepEqual(fields, resultFields);
+
+			});
+
+			it('should return all fields from main table wihout repeat', () => {
+				const parameters = {
+					fields: ['*', 'id']
+				};
+
+				const resultFields = ['id', 'name'];
+
+				const fields = queryBuilder.getFieldsFromWildcard(parameters);
+
+				assert.strictEqual(Array.isArray(fields), true);
+				assert.deepEqual(fields, resultFields);
+
+			});
+
+			it('should return all fields from main table and the added fields from other tables', () => {
+				const parameters = {
+					fields: ['*', 'profile', 'client']
+				};
+
+				const resultFields = ['profile', 'client', 'id', 'name'];
+
+				const fields = queryBuilder.getFieldsFromWildcard(parameters);
+
+				assert.strictEqual(Array.isArray(fields), true);
+				assert.deepEqual(fields, resultFields);
+
+			});
+
+			it('should return all fields from main table and the added fields from other tables without repeat', () => {
+				const parameters = {
+					fields: ['*', 'profile', 'client', 'id']
+				};
+
+				const resultFields = ['profile', 'client', 'id', 'name'];
+
+				const fields = queryBuilder.getFieldsFromWildcard(parameters);
+
+				assert.strictEqual(Array.isArray(fields), true);
+				assert.deepEqual(fields, resultFields);
+
+			});
+		});
+	});
+
 	describe('Automatic Joins', () => {
 
 		const profileTable = 'ProfileTable';
@@ -335,6 +474,22 @@ describe('QueryBuilder', () => {
 				const parameters = paramsBuilder({ fields });
 
 				assert.deepEqual(queryBuilder.prepareParams(parameters), { fields, joins: [profileTable, clientTable] });
+			});
+
+			it('should return parameters with fields and no joins using wildcard', () => {
+				const fields = ['*'];
+
+				const parameters = paramsBuilder({ fields });
+
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { fields: ['id', 'name'] });
+			});
+
+			it('should return parameters with fields and joins with the tables from fields ', () => {
+				const fields = ['*', 'profile', 'client'];
+
+				const parameters = paramsBuilder({ fields });
+
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { fields: ['profile', 'client', 'id', 'name'], joins: [profileTable, clientTable] });
 			});
 
 		});
