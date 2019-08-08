@@ -21,7 +21,7 @@ In the model must be an structured like this:
 
     static get flags() {
         return {
-            foo: { isFoo: 1 }
+            foo: { isActive: 1, error: 2 }
         }
     }
 ```

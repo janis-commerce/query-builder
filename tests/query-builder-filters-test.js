@@ -484,7 +484,7 @@ describe('Build Filters', () => {
 			assert.deepEqual(fakeKnex.where.args[0], ['t.foo', 'LIKE', '%foo%']);
 		});
 
-		it('Should call \'whereRaw\' knex method for flags filters', () => {
+		it('Should call \'whereRaw\' knex method for flags filters using 0', () => {
 
 			model = makeModel({
 				fields: {
@@ -510,6 +510,93 @@ describe('Build Filters', () => {
 			assert.equal(fakeKnex.whereRaw.callCount, 2);
 			assert.deepEqual(fakeKnex.whereRaw.args[0], ['(t.status & 1) = ?', '0']);
 			assert.deepEqual(fakeKnex.whereRaw.args[1], ['(t.status & 2) = ?', '0']);
+
+		});
+
+		it('Should call \'whereRaw\' knex method for flags filters using \'0\'', () => {
+
+			model = makeModel({
+				fields: {
+					status: true,
+					isActive: true,
+					error: true
+				},
+				flags: {
+					status: { isActive: 1, error: 2 }
+				}
+			});
+
+			params = {
+				filters: { isActive: '0', error: '0' }
+			};
+
+			QueryBuilderFilters.buildFilters(knex, model, params);
+
+			assert(knex.where.calledOnce);
+
+			const fakeKnex = callWhereCallback(knex);
+
+			assert.equal(fakeKnex.whereRaw.callCount, 2);
+			assert.deepEqual(fakeKnex.whereRaw.args[0], ['(t.status & 1) = ?', '0']);
+			assert.deepEqual(fakeKnex.whereRaw.args[1], ['(t.status & 2) = ?', '0']);
+
+		});
+
+		it('Should call \'whereRaw\' knex method for flags filters using \'false\' or false', () => {
+
+			model = makeModel({
+				fields: {
+					status: true,
+					isActive: true,
+					error: true
+				},
+				flags: {
+					status: { isActive: 1, error: 2 }
+				}
+			});
+
+			params = {
+				filters: { isActive: 'false', error: false }
+			};
+
+			QueryBuilderFilters.buildFilters(knex, model, params);
+
+			assert(knex.where.calledOnce);
+
+			const fakeKnex = callWhereCallback(knex);
+
+			assert.equal(fakeKnex.whereRaw.callCount, 2);
+			assert.deepEqual(fakeKnex.whereRaw.args[0], ['(t.status & 1) = ?', '0']);
+			assert.deepEqual(fakeKnex.whereRaw.args[1], ['(t.status & 2) = ?', '0']);
+
+		});
+
+		it('Should call \'whereRaw\' knex method for flags filters using other values', () => {
+
+			model = makeModel({
+				fields: {
+					status: true,
+					isActive: true,
+					error: true
+				},
+				flags: {
+					status: { isActive: 1, error: 2 }
+				}
+			});
+
+			params = {
+				filters: { isActive: 5, error: true }
+			};
+
+			QueryBuilderFilters.buildFilters(knex, model, params);
+
+			assert(knex.where.calledOnce);
+
+			const fakeKnex = callWhereCallback(knex);
+
+			assert.equal(fakeKnex.whereRaw.callCount, 2);
+			assert.deepEqual(fakeKnex.whereRaw.args[0], ['(t.status & 1) = ?', '1']);
+			assert.deepEqual(fakeKnex.whereRaw.args[1], ['(t.status & 2) = ?', '2']);
 
 		});
 	});
