@@ -337,46 +337,69 @@ Use `type` key in the `filter` object with some of these:
     select * from `table` as `t` where (`t`.`some` is not null);
     ```
 
-### Group by Fields
+## Flags
 
-Use `group` *key* to group by fields. It's SQL equivalent to `GROUP BY`.
+To filter by Flags, first it must be define on the *model*.
 
-* If a value is a *field name*, it's simple
+In the model: 
 
-    ```javascript
-    const parametres = {
-        filters: { 
-            group: 'some'
+```javascript
+    
+    static get fields() {
+        return {
+            foo: true
+        };
+    };
+
+    static get flags() {
+        return {
+            foo: { isActive: 1, error: 2 }
         }
     }
+```
 
-    const query = new QueryBuilder(knex, someModel);
-    const results = await query.get(parametres);
+Usage: 
+
+* For **false** match
+
+    ```javascript
+        const parametres = {
+            filters: { 
+                filters: {
+                    isActive: false // could be 0, '0' or 'false'
+                }
+            }
+        }
+
+        const query = new QueryBuilder(knex, someModel);
+        const results = await query.get(parametres);
     ```
 
     The query is :
 
     ```sql
-    select * from `table` as `t` group by `t`.`some`;
+        select * from `table` as `t` where  ((`t`.`foo` & 1) = 0);
     ```
 
-* If a value is a `Array` of *field name*, it's multiple
+* For **true** match
 
     ```javascript
-    const parametres = {
-        filters: { 
-            group: ['some', 'other']
+        const parametres = {
+            filters: { 
+                filters: {
+                    error: true // could be anything except 0, '0', false or 'false'
+                }
+            }
         }
-    }
 
-    const query = new QueryBuilder(knex, someModel);
-    const results = await query.get(parametres);
+        const query = new QueryBuilder(knex, someModel);
+        const results = await query.get(parametres);
     ```
 
     The query is :
 
     ```sql
-    select * from `table` as `t` group by `t`.`some`, `t`.`other`;
+        select * from `table` as `t` where  ((`t`.`foo` & 2) = 2);
     ```
 - - -
 
