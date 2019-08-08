@@ -307,6 +307,43 @@ describe('Build Group', () => {
 			assert.deepEqual(knex.select.args[0][0], 't.*');
 		});
 
+		it('should call knex.select() and knex.raw() if fields definition exists and params.fields has wildcard', () => {
+
+			model = makeModel({
+				fields: { id: true, name: true, code: { table: 'codeTable' } },
+				joins: { codeTable: { table: 'codeTable', alias: 'ct', on: ['id', 'code'] } }
+			});
+
+			params = {
+				fields: ['*']
+			};
+
+			QueryBuilderFields.buildSelect(knex, model, params);
+
+			assert(knex.select.calledOnce);
+			assert(knex.raw.calledOnce);
+			assert.deepEqual(knex.raw.args[0][0], '`t`.*');
+		});
+
+		it('should call knex.select() and knex.raw() if fields definition exists and params.fields has wildcard and other field', () => {
+
+			model = makeModel({
+				fields: { id: true, name: true, code: { table: 'codeTable' } },
+				joins: { codeTable: { table: 'codeTable', alias: 'ct', on: ['id', 'code'] } }
+			});
+
+			params = {
+				fields: ['*', 'code']
+			};
+
+			QueryBuilderFields.buildSelect(knex, model, params);
+
+			assert(knex.select.calledTwice);
+			assert(knex.raw.calledOnce);
+			assert.deepEqual(knex.raw.args[0][0], '`t`.*');
+			assert.deepEqual(knex.select.args[1][0], { code: 'ct.code' });
+		});
+
 		it('should call knex.select() if t.* and model flags when no params.fields given', () => {
 
 			model = makeModel({
@@ -344,7 +381,6 @@ describe('Build Group', () => {
 
 			assert(knex.raw.notCalled);
 		});
-
 
 		it('should call knex.select() and knex.raw() if params.fields with a flag passed', () => {
 
