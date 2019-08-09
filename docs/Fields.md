@@ -82,11 +82,11 @@ select * from `table`;
 ```
 - - -
 
-## Wildcard
+## Extra Fields
 
-It's possible select every *field* from the **main table** using a wildcard,and add other fields, filters, etc.
+It's possible select every *field* from the **main table** using the **Extra Fields** options.
 
-The wildcard is `*`.
+These allow you to add other fields along the main ones.
 
 In the *model*
 
@@ -100,19 +100,12 @@ In the *model*
             id: true,
             name: true,
             lastname: true,
-            status: true,
             company: true,
             companyName: { table: 'companyTable' },
             job: true,
             jobName: { table: 'jobTable' }
         };
     };
-
-    static get flags() {
-        return {
-            status: { isActive: 1 }
-        }
-    }
 
     static get joins() {
         return {
@@ -133,7 +126,8 @@ In the *model*
 
 ```javascript
 const parametres = { 
-    fields: ['*','companyName']
+    extraFields: true,
+    fields: ['companyName']
 };
 
 const query = new QueryBuilder(knex,someModel);
