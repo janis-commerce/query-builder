@@ -307,7 +307,7 @@ describe('Build Group', () => {
 			assert.deepEqual(knex.select.args[0][0], 't.*');
 		});
 
-		it('should call knex.select() if fields definition exists and params.fields has wildcard only', () => {
+		it('should call knex.select() if fields definition exists and params.fields has extra Fields only', () => {
 
 			model = makeModel({
 				fields: { id: true, name: true, code: { table: 'codeTable' } },
@@ -315,7 +315,7 @@ describe('Build Group', () => {
 			});
 
 			params = {
-				wildcard: true
+				extraFields: true
 			};
 
 			QueryBuilderFields.buildSelect(knex, model, params);
@@ -325,7 +325,7 @@ describe('Build Group', () => {
 			assert.deepEqual(knex.select.args[0][0], 't.*');
 		});
 
-		it('should call knex.select() and knex.raw() if fields definition exists and params.fields has wildcard and other field', () => {
+		it('should call knex.select() and knex.raw() if fields definition exists and params.fields has extra Fields and other field', () => {
 
 			model = makeModel({
 				fields: { id: true, name: true, code: { table: 'codeTable' } },
@@ -333,7 +333,7 @@ describe('Build Group', () => {
 			});
 
 			params = {
-				wildcard: true,
+				extraFields: true,
 				fields: ['code']
 			};
 
