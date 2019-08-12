@@ -307,7 +307,7 @@ describe('Build Group', () => {
 			assert.deepEqual(knex.select.args[0][0], 't.*');
 		});
 
-		it('should call knex.select() if fields definition exists and params.fields has extra Fields only', () => {
+		it('should call knex.select() if fields definition exists and params.fields has extra Fields invalids', () => {
 
 			model = makeModel({
 				fields: { id: true, name: true, code: { table: 'codeTable' } },
@@ -325,7 +325,7 @@ describe('Build Group', () => {
 			assert.deepEqual(knex.select.args[0][0], 't.*');
 		});
 
-		it('should call knex.select() and knex.raw() if fields definition exists and params.fields has extra Fields and other field', () => {
+		it('should call knex.select() if fields definition exists and params has extra Fields', () => {
 
 			model = makeModel({
 				fields: { id: true, name: true, code: { table: 'codeTable' } },
@@ -333,16 +333,87 @@ describe('Build Group', () => {
 			});
 
 			params = {
-				extraFields: true,
-				fields: ['code']
+				extraFields: ['code']
 			};
 
 			QueryBuilderFields.buildSelect(knex, model, params);
 
 			assert(knex.select.calledTwice);
-			assert(knex.raw.calledOnce);
-			assert.deepEqual(knex.raw.args[0][0], '`t`.*');
+			assert.deepEqual(knex.select.args[0][0], 't.*');
 			assert.deepEqual(knex.select.args[1][0], { code: 'ct.code' });
+		});
+
+		it('should call knex.select() and knex.raw() if fields definition exists with tags and params has extra Fields ', () => {
+
+			model = makeModel({
+				fields: {
+					id: true, name: true, code: { table: 'codeTable' }, status: true, isActive: true
+				},
+				joins: { codeTable: { table: 'codeTable', alias: 'ct', on: ['id', 'code'] } },
+				flags: { status: { isActive: 1 } }
+
+			});
+
+			params = {
+				extraFields: ['code']
+			};
+
+			QueryBuilderFields.buildSelect(knex, model, params);
+
+
+			assert(knex.select.calledThrice);
+			assert(knex.raw.calledOnce);
+
+			assert.deepEqual(knex.select.args[0][0], 't.*');
+			assert.deepEqual(knex.select.args[1][0], { code: 'ct.code' });
+			assert.deepEqual(knex.raw.args[0][0], '((t.status & 1) = 1) as isActive');
+		});
+
+		it.only('should call knex.select() and knex.raw() if fields definition exists and params has extra Fields with tags', () => {
+
+			model = makeModel({
+				fields: {
+					id: true, name: true, code: { table: 'codeTable' }, status: true, isActive: true
+				},
+				joins: { codeTable: { table: 'codeTable', alias: 'ct', on: ['id', 'code'] } },
+				flags: { code: { isActive: 1 } }
+
+			});
+
+			params = {
+				extraFields: ['isActive']
+			};
+
+			QueryBuilderFields.buildSelect(knex, model, params);
+			assert(knex.select.calledThrice);
+			assert(knex.raw.calledOnce);
+
+			assert.deepEqual(knex.select.args[0][0], 't.*');
+			assert.deepEqual(knex.raw.args[0][0], '((ct.code & 1) = 1) as isActive');
+		});
+
+		it('should call knex.select(), but no add extra fields, if fields definition exists and params has fields and extra Fields', () => {
+
+			model = makeModel({
+				fields: {
+					id: true, name: true, code: { table: 'codeTable' }, status: true, isActive: true
+				},
+				joins: { codeTable: { table: 'codeTable', alias: 'ct', on: ['id', 'code'] } },
+				flags: { code: { isActive: 1 } }
+
+			});
+
+			params = {
+				fields: ['id'],
+				extraFields: ['code']
+			};
+
+			QueryBuilderFields.buildSelect(knex, model, params);
+
+			assert(knex.select.calledOnce);
+			assert(knex.raw.notCalled);
+
+			assert.deepEqual(knex.select.args[0][0], { id: 't.id' });
 		});
 
 		it('should call knex.select() if t.* and model flags when no params.fields given', () => {

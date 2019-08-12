@@ -339,6 +339,34 @@ describe('QueryBuilder', () => {
 
 		});
 
+		context('when parameters have extra fields', () => {
+
+			it('should return parameters with extra fields and no joins', () => {
+				const extraFields = ['id', 'name'];
+
+				const parameters = paramsBuilder({ extraFields });
+
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { extraFields });
+			});
+
+			it('should return parameters with extra fields and joins with the table from extra fields', () => {
+				const extraFields = ['id', 'name', 'profile'];
+
+				const parameters = paramsBuilder({ extraFields });
+
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { extraFields, joins: [profileTable] });
+			});
+
+			it('should return parameters with extra fields and joins with the tables from extra fields ', () => {
+				const extraFields = ['id', 'name', 'profile', 'client'];
+
+				const parameters = paramsBuilder({ extraFields });
+
+				assert.deepEqual(queryBuilder.prepareParams(parameters), { extraFields, joins: [profileTable, clientTable] });
+			});
+
+		});
+
 		context('when parameters have group', () => {
 
 			it('should return parameters with group and no joins, using a single field', () => {
