@@ -82,11 +82,13 @@ select * from `table`;
 ```
 - - -
 
-## Extra Fields
+## Select All and Extra Fields
 
-It's possible select every *field* from the **main table** using the **Extra Fields** options.
+It's possible select every *field* from the **main table**, `t.*`, and add **Extra Fields**. 
 
-These allow you to add other fields along the main ones.
+Use `extraFields` with an `array` of fields.
+
+**Important**: Don't work if parameter has `fields`.
 
 In the *model*
 
@@ -126,8 +128,7 @@ In the *model*
 
 ```javascript
 const parametres = { 
-    extraFields: true,
-    fields: ['companyName']
+    extraFields: ['companyName']
 };
 
 const query = new QueryBuilder(knex,someModel);
