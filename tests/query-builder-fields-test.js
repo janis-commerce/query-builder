@@ -369,7 +369,7 @@ describe('Build Group', () => {
 			assert.deepEqual(knex.raw.args[0][0], '((t.status & 1) = 1) as isActive');
 		});
 
-		it.only('should call knex.select() and knex.raw() if fields definition exists and params has extra Fields with tags', () => {
+		it('should call knex.select() and knex.raw() if fields definition exists and params has extra Fields with tags', () => {
 
 			model = makeModel({
 				fields: {
