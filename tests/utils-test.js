@@ -19,4 +19,16 @@ describe('Utils', function() {
 			assert.deepEqual(Utils.arrayUnique([]), []);
 		});
 	});
+
+	describe('Should convert string to snake_case', function() {
+		assert.equal(Utils.convertToSnakeCase('orderFormId'), 'order_form_id');
+		assert.equal(Utils.convertToSnakeCase('checkBoolean'), 'check_boolean');
+		assert.equal(Utils.convertToSnakeCase('status'), 'status');
+	});
+
+	describe('Should convert string to camelCamse', function() {
+		assert.equal(Utils.convertToCamelCase('order_formId'), 'orderFormId');
+		assert.equal(Utils.convertToCamelCase('check_boolean'), 'checkBoolean');
+		assert.equal(Utils.convertToCamelCase('status'), 'status');
+	});
 });
