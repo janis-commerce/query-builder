@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## [1.3.4] - 2019-09-06
+### Changed
+- Dependencies updated
+
+### Fixed
+- Conversion of Fields to Camel and Snake cases
+
 ## [1.3.3] - 2019-08-28
 ### Fixed
 - `Update` modified `date_modified`

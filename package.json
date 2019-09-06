@@ -26,12 +26,12 @@
   },
   "devDependencies": {
     "eslint": "^5.16.0",
-    "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-plugin-import": "^2.14.0",
+    "eslint-config-airbnb-base": "^13.2.0",
+    "eslint-plugin-import": "^2.18.2",
+    "husky": "^2.7.0",
     "mocha": "^5.2.0",
     "nyc": "^14.1.0",
-    "sinon": "^7.3.2",
-    "husky": "^2.4.1"
+    "sinon": "^7.4.2"
   },
   "files": [
     "lib/"
