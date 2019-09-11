@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert');
-const sinon = require('sinon').createSandbox();
+const sandbox = require('sinon').createSandbox();
 
 const { QueryBuilderError } = require('./../lib');
 const QueryBuilder = require('./../index');
@@ -36,10 +36,10 @@ const makeKnex = () => {
 
 	const knexToString = ['insert', 'del', 'update'];
 
-	knexMethods.forEach(knexMethod => { FakeKnex[knexMethod] = sinon.stub(); });
+	knexMethods.forEach(knexMethod => { FakeKnex[knexMethod] = sandbox.stub(); });
 	knexToString.forEach(knexMethod => {
-		FakeKnex[knexMethod] = sinon.stub().returns('');
-		FakeKnex[knexMethod].toString = sinon.stub().returns('');
+		FakeKnex[knexMethod] = sandbox.stub().returns('');
+		FakeKnex[knexMethod].toString = sandbox.stub().returns('');
 	});
 
 	return FakeKnex;
@@ -134,7 +134,7 @@ function queryBuilderFactory({
 	}
 
 	const knex = knexSpy || makeKnexFunction();
-	knex.raw = knexRaw ? sinon.stub().returns(makeKnexRawShowColumns(fields, knexRaw === 1)) : sinon.stub();
+	knex.raw = knexRaw ? sandbox.stub().returns(makeKnexRawShowColumns(fields, knexRaw === 1)) : sandbox.stub();
 	const model = new Model();
 
 	return new QueryBuilder(knex, model);
@@ -593,7 +593,7 @@ describe('QueryBuilder', () => {
 
 			const queryBuilder = queryBuilderFactory();
 
-			const executeSpy = sinon.spy(queryBuilder, 'get');
+			const executeSpy = sandbox.spy(queryBuilder, 'get');
 
 			queryBuilder.get();
 
@@ -604,7 +604,7 @@ describe('QueryBuilder', () => {
 
 			const queryBuilder = queryBuilderFactory({ fields: { foo: true } });
 
-			const executeSpy = sinon.spy(queryBuilder, 'get');
+			const executeSpy = sandbox.spy(queryBuilder, 'get');
 
 			queryBuilder.get({ fields: ['foo'] });
 
@@ -629,7 +629,7 @@ describe('QueryBuilder', () => {
 		});
 
 		afterEach(() => {
-			sinon.restore();
+			sandbox.restore();
 		});
 
 		it('Should return knexStatement', async () => {
@@ -637,13 +637,31 @@ describe('QueryBuilder', () => {
 			const fields = { foo: true };
 
 			model = makeModel({ fields });
-			knex.raw = sinon.stub().returns(makeKnexRawShowColumns(fields, true));
+			knex.raw = sandbox.stub().returns(makeKnexRawShowColumns(fields, true));
 
 			const queryBuilder = new QueryBuilder(knex, model);
 
-			const executeSpy = sinon.spy(queryBuilder, 'insert');
+			const executeSpy = sandbox.spy(queryBuilder, 'insert');
 
 			await queryBuilder.insert({ foo: 'bar' });
+
+			assert(executeSpy.returnValues[0] instanceof Promise);
+		});
+
+		it('Should insert non-undefined falsy values like 0 or empty string', async () => {
+
+			const fields = { foo: true, bar: true };
+
+			model = makeModel({ fields });
+			knex.raw = sandbox.stub().returns(makeKnexRawShowColumns(fields, true));
+
+			const queryBuilder = new QueryBuilder(knex, model);
+
+			const executeSpy = sandbox.spy(queryBuilder, 'insert');
+
+			await queryBuilder.insert({ foo: '', bar: 0 });
+
+			sandbox.assert.calledWithExactly(queryBuilder.insert, { foo: '', bar: 0 });
 
 			assert(executeSpy.returnValues[0] instanceof Promise);
 		});
@@ -653,11 +671,11 @@ describe('QueryBuilder', () => {
 			const fields = { foo: true };
 
 			model = makeModel({ fields });
-			knex.raw = sinon.stub().returns(makeKnexRawShowColumns(fields, true));
+			knex.raw = sandbox.stub().returns(makeKnexRawShowColumns(fields, true));
 
 			const queryBuilder = new QueryBuilder(knex, model);
 
-			const executeSpy = sinon.spy(queryBuilder, 'insert');
+			const executeSpy = sandbox.spy(queryBuilder, 'insert');
 
 			await queryBuilder.insert([{ foo: 'bar' }, { foo: 'bar2' }]);
 
@@ -669,11 +687,11 @@ describe('QueryBuilder', () => {
 			const fields = { foo: true, dummy: true, date_modified: true };
 
 			model = makeModel({ fields });
-			knex.raw = sinon.stub().returns(makeKnexRawShowColumns(fields, true));
+			knex.raw = sandbox.stub().returns(makeKnexRawShowColumns(fields, true));
 
 			const queryBuilder = new QueryBuilder(knex, model);
 
-			const executeSpy = sinon.spy(queryBuilder, 'insert');
+			const executeSpy = sandbox.spy(queryBuilder, 'insert');
 
 			await queryBuilder.insert([{ foo: 'bar', dummy: 'Very' }, { dummy: 'bar2', date_modified: 11111111 }]);
 
@@ -685,11 +703,11 @@ describe('QueryBuilder', () => {
 			const fields = { foo: true, date_modified: true };
 
 			model = makeModel({ fields });
-			knex.raw = sinon.stub().returns(makeKnexRawShowColumns(fields, true));
+			knex.raw = sandbox.stub().returns(makeKnexRawShowColumns(fields, true));
 
 			const queryBuilder = new QueryBuilder(knex, model);
 
-			const executeSpy = sinon.spy(queryBuilder, 'insert');
+			const executeSpy = sandbox.spy(queryBuilder, 'insert');
 
 			await queryBuilder.insert([{ foo: 'bar', extra: 1 }, { foo: 'bar2', date_modified: 11111111 }]);
 
@@ -699,7 +717,7 @@ describe('QueryBuilder', () => {
 		it('Should throw Error if no items to insert', async () => {
 
 			model = makeModel({});
-			knex.raw = sinon.stub().returns(makeKnexRawShowColumns({}, true));
+			knex.raw = sandbox.stub().returns(makeKnexRawShowColumns({}, true));
 
 			const queryBuilder = new QueryBuilder(knex, model);
 
@@ -715,13 +733,13 @@ describe('QueryBuilder', () => {
 			const makeKnexError = () => {
 				class KnexError {}
 
-				KnexError.insert = sinon.stub().rejects();
+				KnexError.insert = sandbox.stub().rejects();
 
 				return KnexError;
 			};
 
 			const knexError = () => makeKnexError;
-			knexError.raw = sinon.stub().returns(makeKnexRawShowColumns(fields, true));
+			knexError.raw = sandbox.stub().returns(makeKnexRawShowColumns(fields, true));
 
 			const queryBuilder = new QueryBuilder(knexError, model);
 
@@ -745,7 +763,7 @@ describe('QueryBuilder', () => {
 		});
 
 		afterEach(() => {
-			sinon.restore();
+			sandbox.restore();
 		});
 
 		it('Should return knexStatement', async () => {
@@ -753,13 +771,31 @@ describe('QueryBuilder', () => {
 			const fields = { foo: true };
 
 			model = makeModel({ fields });
-			knex.raw = sinon.stub().returns(makeKnexRawShowColumns(fields, true));
+			knex.raw = sandbox.stub().returns(makeKnexRawShowColumns(fields, true));
 
 			const queryBuilder = new QueryBuilder(knex, model);
 
-			const executeSpy = sinon.spy(queryBuilder, 'save');
+			const executeSpy = sandbox.spy(queryBuilder, 'save');
 
 			await queryBuilder.save({ foo: 1 });
+
+			assert(executeSpy.returnValues[0] instanceof Promise);
+		});
+
+		it('Should save non-undefined falsy values like 0 or empty string', async () => {
+
+			const fields = { foo: true, bar: true };
+
+			model = makeModel({ fields });
+			knex.raw = sandbox.stub().returns(makeKnexRawShowColumns(fields, true));
+
+			const queryBuilder = new QueryBuilder(knex, model);
+
+			const executeSpy = sandbox.spy(queryBuilder, 'save');
+
+			await queryBuilder.save({ foo: '', bar: 0 });
+
+			sandbox.assert.calledWithExactly(queryBuilder.save, { foo: '', bar: 0 });
 
 			assert(executeSpy.returnValues[0] instanceof Promise);
 		});
@@ -769,11 +805,11 @@ describe('QueryBuilder', () => {
 			const fields = { id: true, foo: true };
 
 			model = makeModel({ fields });
-			knex.raw = sinon.stub().returns(makeKnexRawShowColumns(fields, true));
+			knex.raw = sandbox.stub().returns(makeKnexRawShowColumns(fields, true));
 
 			const queryBuilder = new QueryBuilder(knex, model);
 
-			const executeSpy = sinon.spy(queryBuilder, 'save');
+			const executeSpy = sandbox.spy(queryBuilder, 'save');
 
 			await queryBuilder.save([{ id: 1, foo: 'bar' }, { id: 100, foo: 'bar2' }]);
 
@@ -785,11 +821,11 @@ describe('QueryBuilder', () => {
 			const fields = { foo: true, date_modified: true };
 
 			model = makeModel({ fields });
-			knex.raw = sinon.stub().returns(makeKnexRawShowColumns(fields, true));
+			knex.raw = sandbox.stub().returns(makeKnexRawShowColumns(fields, true));
 
 			const queryBuilder = new QueryBuilder(knex, model);
 
-			const executeSpy = sinon.spy(queryBuilder, 'save');
+			const executeSpy = sandbox.spy(queryBuilder, 'save');
 
 			await queryBuilder.save([{ foo: 'bar', extra: 1 }, { foo: 'bar2' }]);
 
@@ -801,11 +837,11 @@ describe('QueryBuilder', () => {
 			const fields = { foo: true };
 
 			model = makeModel({ fields });
-			knex.raw = sinon.stub().returns(makeKnexRawShowColumns(fields, true));
+			knex.raw = sandbox.stub().returns(makeKnexRawShowColumns(fields, true));
 
 			const queryBuilder = new QueryBuilder(knex, model);
 
-			const executeSpy = sinon.spy(queryBuilder, 'save');
+			const executeSpy = sandbox.spy(queryBuilder, 'save');
 
 			await queryBuilder.save([{ foo: 'bar', date_created: 15101010 }, { foo: 'bar2' }]);
 
@@ -815,7 +851,7 @@ describe('QueryBuilder', () => {
 		it('Should throw Error if no item passed', async () => {
 
 			model = makeModel({});
-			knex.raw = sinon.stub().returns(makeKnexRawShowColumns({}, true));
+			knex.raw = sandbox.stub().returns(makeKnexRawShowColumns({}, true));
 
 			const queryBuilder = new QueryBuilder(knex, model);
 
@@ -831,13 +867,13 @@ describe('QueryBuilder', () => {
 			const makeKnexError = () => {
 				class KnexError {}
 
-				KnexError.insert = sinon.stub().rejects();
+				KnexError.insert = sandbox.stub().rejects();
 
 				return KnexError;
 			};
 
 			const knexError = () => makeKnexError;
-			knexError.raw = sinon.stub().returns(makeKnexRawShowColumns(fields, true));
+			knexError.raw = sandbox.stub().returns(makeKnexRawShowColumns(fields, true));
 
 			const queryBuilder = new QueryBuilder(knexError, model);
 
@@ -861,7 +897,7 @@ describe('QueryBuilder', () => {
 		});
 
 		afterEach(() => {
-			sinon.restore();
+			sandbox.restore();
 		});
 
 		it('Should return knexStatement', async () => {
@@ -869,11 +905,11 @@ describe('QueryBuilder', () => {
 			const fields = { foo: true };
 
 			model = makeModel({ fields });
-			knex.raw = sinon.stub().returns(makeKnexRawShowColumns(fields, true));
+			knex.raw = sandbox.stub().returns(makeKnexRawShowColumns(fields, true));
 
 			const queryBuilder = new QueryBuilder(knex, model);
 
-			const executeSpy = sinon.spy(queryBuilder, 'update');
+			const executeSpy = sandbox.spy(queryBuilder, 'update');
 
 			await queryBuilder.update({ foo: 'bar' }, { dummy: { value: 1, type: 'greater' } });
 
@@ -885,11 +921,11 @@ describe('QueryBuilder', () => {
 			const fields = { foo: true, dummy: true };
 
 			model = makeModel({ fields });
-			knex.raw = sinon.stub().returns(makeKnexRawShowColumns(fields, true));
+			knex.raw = sandbox.stub().returns(makeKnexRawShowColumns(fields, true));
 
 			const queryBuilder = new QueryBuilder(knex, model);
 
-			const executeSpy = sinon.spy(queryBuilder, 'update');
+			const executeSpy = sandbox.spy(queryBuilder, 'update');
 
 			await queryBuilder.update({ foo: 'bar', extra: 'some extra' }, { dummy: { value: 1, type: 'greater' } });
 
@@ -901,11 +937,11 @@ describe('QueryBuilder', () => {
 			const fields = { foo: true, dummy: true };
 
 			model = makeModel({ fields });
-			knex.raw = sinon.stub().returns(makeKnexRawShowColumns(fields, true));
+			knex.raw = sandbox.stub().returns(makeKnexRawShowColumns(fields, true));
 
 			const queryBuilder = new QueryBuilder(knex, model);
 
-			const executeSpy = sinon.spy(queryBuilder, 'update');
+			const executeSpy = sandbox.spy(queryBuilder, 'update');
 
 			await queryBuilder.update({ foo: 'bar', date_created: 15101010 }, { dummy: { value: 100, type: 'lesser' } });
 
@@ -915,7 +951,7 @@ describe('QueryBuilder', () => {
 		it('Should throw Error', async () => {
 
 			model = makeModel({});
-			knex.raw = sinon.stub().returns(makeKnexRawShowColumns({}, true));
+			knex.raw = sandbox.stub().returns(makeKnexRawShowColumns({}, true));
 
 			const queryBuilder = new QueryBuilder(knex, model);
 
@@ -931,14 +967,14 @@ describe('QueryBuilder', () => {
 			const makeKnexError = () => {
 				class KnexError {}
 
-				KnexError.where = sinon.stub().callsFake(cb => cb());
-				KnexError.update = sinon.stub().returns('');
+				KnexError.where = sandbox.stub().callsFake(cb => cb());
+				KnexError.update = sandbox.stub().returns('');
 
 				return KnexError;
 			};
 
 			const knexError = makeKnexError;
-			knexError.raw = sinon.stub().returns(makeKnexRawShowColumns(fields, true));
+			knexError.raw = sandbox.stub().returns(makeKnexRawShowColumns(fields, true));
 
 			const queryBuilder = new QueryBuilder(knexError, model);
 
@@ -963,13 +999,13 @@ describe('QueryBuilder', () => {
 			const makeKnexError = () => {
 				class KnexError {}
 
-				KnexError.update = sinon.stub().rejects();
+				KnexError.update = sandbox.stub().rejects();
 
 				return KnexError;
 			};
 
 			const knexError = () => makeKnexError;
-			knexError.raw = sinon.stub().returns(makeKnexRawShowColumns(fields, true));
+			knexError.raw = sandbox.stub().returns(makeKnexRawShowColumns(fields, true));
 
 			const queryBuilder = new QueryBuilder(knexError, model);
 
@@ -997,7 +1033,7 @@ describe('QueryBuilder', () => {
 		});
 
 		afterEach(() => {
-			sinon.restore();
+			sandbox.restore();
 		});
 
 		it('Should return knexStatement', async () => {
@@ -1005,11 +1041,11 @@ describe('QueryBuilder', () => {
 			const fields = { foo: true };
 
 			model = makeModel({ fields });
-			knex.raw = sinon.stub().returns(makeKnexRawShowColumns(fields, true));
+			knex.raw = sandbox.stub().returns(makeKnexRawShowColumns(fields, true));
 
 			const queryBuilder = new QueryBuilder(knex, model);
 
-			const executeSpy = sinon.spy(queryBuilder, 'remove');
+			const executeSpy = sandbox.spy(queryBuilder, 'remove');
 
 			await queryBuilder.remove({ foo: { value: 10, type: 'lesser' } });
 
@@ -1025,15 +1061,15 @@ describe('QueryBuilder', () => {
 			const makeKnexError = () => {
 				class KnexError {}
 
-				KnexError.where = sinon.stub();
-				KnexError.del = sinon.stub().returns('');
-				KnexError.del.toString = sinon.stub().returns('');
+				KnexError.where = sandbox.stub();
+				KnexError.del = sandbox.stub().returns('');
+				KnexError.del.toString = sandbox.stub().returns('');
 
 				return KnexError;
 			};
 
 			const knexError = makeKnexError;
-			knexError.raw = sinon.stub().callsFake(query => {
+			knexError.raw = sandbox.stub().callsFake(query => {
 				if(!query)
 					throw new QueryBuilderError('Some Filter Error', QueryBuilderError.codes.INVALID_FILTERS);
 			});
@@ -1057,15 +1093,15 @@ describe('QueryBuilder', () => {
 			const makeKnexError = () => {
 				class KnexError {}
 
-				KnexError.where = sinon.stub().returns('');
-				KnexError.del = sinon.stub().returns('');
-				KnexError.del.toString = sinon.stub().returns('');
+				KnexError.where = sandbox.stub().returns('');
+				KnexError.del = sandbox.stub().returns('');
+				KnexError.del.toString = sandbox.stub().returns('');
 
 				return KnexError;
 			};
 
 			const knexError = makeKnexError;
-			knexError.raw = sinon.stub().callsFake(query => {
+			knexError.raw = sandbox.stub().callsFake(query => {
 				if(!query)
 					throw new Error('Fails');
 			});
