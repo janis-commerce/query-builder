@@ -50,6 +50,15 @@ const makeModel = ({
 	return new FakeModel();
 };
 
+let queryBuilderFilters;
+
+const makeQueryBuilder = model => {
+	if(!model)
+		queryBuilderFilters = new QueryBuilderFilters(makeModel({}));
+	else
+		queryBuilderFilters = new QueryBuilderFilters(model);
+};
+
 describe('Build Filters', () => {
 	let knex;
 	let model;
@@ -71,6 +80,7 @@ describe('Build Filters', () => {
 	context('when no Knex function or Model is passed', () => {
 
 		beforeEach(() => {
+			makeQueryBuilder();
 			knex = makeKnex();
 		});
 
@@ -80,13 +90,13 @@ describe('Build Filters', () => {
 
 		it('should return QueryBuilderError if no params is passed', () => {
 
-			assert.throws(() => QueryBuilderFilters.buildFilters(), { code: QueryBuilderError.codes.INVALID_KNEX });
+			assert.throws(() => queryBuilderFilters.buildFilters(), { code: QueryBuilderError.codes.INVALID_KNEX });
 
 		});
 
 		it('should return QueryBuilderError if no Model is passed', () => {
 
-			assert.throws(() => QueryBuilderFilters.buildFilters(knex), { code: QueryBuilderError.codes.INVALID_MODEL });
+			assert.throws(() => queryBuilderFilters.buildFilters(knex), { code: QueryBuilderError.codes.INVALID_MODEL });
 
 		});
 
@@ -100,13 +110,16 @@ describe('Build Filters', () => {
 
 			params = param;
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.where.calledOnce);
 			assert.throws(() => { callWhereCallback(knex); }, QueryBuilderError);
 		};
 
 		beforeEach(() => {
+			makeQueryBuilder();
 			knex = makeKnex();
 		});
 
@@ -119,7 +132,7 @@ describe('Build Filters', () => {
 
 			params = {};
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.where.notCalled);
 		});
@@ -128,7 +141,7 @@ describe('Build Filters', () => {
 
 			params = {};
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.where.notCalled);
 		});
@@ -180,7 +193,9 @@ describe('Build Filters', () => {
 				filters: { isActive: {}, error: { value: [] } }
 			};
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.where.calledOnce);
 
@@ -212,7 +227,9 @@ describe('Build Filters', () => {
 				fields: { id: 'id' }
 			});
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.where.calledOnce);
 
@@ -229,7 +246,9 @@ describe('Build Filters', () => {
 
 			model = makeModel({ fields });
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.where.calledOnce);
 
@@ -246,7 +265,9 @@ describe('Build Filters', () => {
 
 			model = makeModel({ fields });
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.orWhere.calledOnce);
 
@@ -265,7 +286,9 @@ describe('Build Filters', () => {
 
 			model = makeModel({ fields });
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.orWhere.calledTwice);
 
@@ -287,7 +310,9 @@ describe('Build Filters', () => {
 
 			model = makeModel({ fields });
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.where.calledOnce);
 
@@ -304,7 +329,9 @@ describe('Build Filters', () => {
 
 			model = makeModel({ fields });
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.where.calledOnce);
 
@@ -321,7 +348,9 @@ describe('Build Filters', () => {
 
 			model = makeModel({ fields });
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.where.calledOnce);
 
@@ -338,7 +367,9 @@ describe('Build Filters', () => {
 
 			model = makeModel({ fields });
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.where.calledOnce);
 
@@ -355,7 +386,9 @@ describe('Build Filters', () => {
 
 			model = makeModel({ fields });
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.where.calledOnce);
 
@@ -372,7 +405,9 @@ describe('Build Filters', () => {
 
 			model = makeModel({ fields });
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.where.calledOnce);
 
@@ -389,7 +424,9 @@ describe('Build Filters', () => {
 
 			model = makeModel({ fields });
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.where.calledOnce);
 
@@ -406,7 +443,9 @@ describe('Build Filters', () => {
 
 			model = makeModel({ fields });
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.where.calledOnce);
 
@@ -423,7 +462,9 @@ describe('Build Filters', () => {
 
 			model = makeModel({ fields });
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.where.calledOnce);
 
@@ -440,7 +481,9 @@ describe('Build Filters', () => {
 
 			model = makeModel({ fields });
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.where.calledOnce);
 
@@ -457,7 +500,9 @@ describe('Build Filters', () => {
 
 			model = makeModel({ fields });
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.where.calledOnce);
 
@@ -474,7 +519,9 @@ describe('Build Filters', () => {
 
 			model = makeModel({ fields });
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.where.calledOnce);
 
@@ -501,7 +548,9 @@ describe('Build Filters', () => {
 				filters: { isActive: 0, error: 0 }
 			};
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.where.calledOnce);
 
@@ -530,7 +579,9 @@ describe('Build Filters', () => {
 				filters: { isActive: '0', error: '0' }
 			};
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.where.calledOnce);
 
@@ -559,7 +610,9 @@ describe('Build Filters', () => {
 				filters: { isActive: 'false', error: false }
 			};
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.where.calledOnce);
 
@@ -588,7 +641,9 @@ describe('Build Filters', () => {
 				filters: { isActive: 5, error: true }
 			};
 
-			QueryBuilderFilters.buildFilters(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFilters.buildFilters(knex, model, params);
 
 			assert(knex.where.calledOnce);
 

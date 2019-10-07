@@ -50,6 +50,15 @@ const makeModel = ({
 	return new FakeModel();
 };
 
+let queryBuilderJoins;
+
+const makeQueryBuilder = model => {
+	if(!model)
+		queryBuilderJoins = new QueryBuilderJoins(makeModel({}));
+	else
+		queryBuilderJoins = new QueryBuilderJoins(model);
+};
+
 describe('Build Joins', () => {
 	let knex;
 	let model;
@@ -58,6 +67,7 @@ describe('Build Joins', () => {
 	context('when no Knex function or Model is passed', () => {
 
 		beforeEach(() => {
+			makeQueryBuilder();
 			knex = makeKnex();
 		});
 
@@ -67,13 +77,13 @@ describe('Build Joins', () => {
 
 		it('should return QueryBuilderError if no params is passed', () => {
 
-			assert.throws(() => QueryBuilderJoins.buildJoins(), { code: QueryBuilderError.codes.INVALID_KNEX });
+			assert.throws(() => queryBuilderJoins.buildJoins(), { code: QueryBuilderError.codes.INVALID_KNEX });
 
 		});
 
 		it('should return QueryBuilderError if no Model is passed', () => {
 
-			assert.throws(() => QueryBuilderJoins.buildJoins(knex), { code: QueryBuilderError.codes.INVALID_MODEL });
+			assert.throws(() => queryBuilderJoins.buildJoins(knex), { code: QueryBuilderError.codes.INVALID_MODEL });
 
 		});
 
@@ -84,6 +94,7 @@ describe('Build Joins', () => {
 		const joinKnexMethods = ['join', 'innerJoin', 'leftJoin', 'leftOuter', 'rightJoin', 'rightOuterJoin', 'fullOuterJoin', 'crossJoin'];
 
 		beforeEach(() => {
+			makeQueryBuilder();
 			knex = makeKnex();
 		});
 
@@ -95,7 +106,7 @@ describe('Build Joins', () => {
 			model = makeModel({});
 			params = {};
 
-			QueryBuilderJoins.buildJoins(knex, model, params);
+			queryBuilderJoins.buildJoins(knex, model, params);
 
 			joinKnexMethods.forEach(method => {
 				assert.equal(knex[method].called, false);
@@ -109,7 +120,9 @@ describe('Build Joins', () => {
 				joins: ['foo']
 			};
 
-			assert.throws(() => QueryBuilderJoins.buildJoins(knex, model, params), { code: QueryBuilderError.codes.INVALID_FIELDS });
+			makeQueryBuilder(model);
+
+			assert.throws(() => queryBuilderJoins.buildJoins(knex, model, params), { code: QueryBuilderError.codes.INVALID_FIELDS });
 
 			joinKnexMethods.forEach(method => {
 				assert.equal(knex[method].called, false);
@@ -121,7 +134,7 @@ describe('Build Joins', () => {
 				joins: ['foo']
 			};
 
-			assert.throws(() => QueryBuilderJoins.buildJoins(knex, model, params), { code: QueryBuilderError.codes.INVALID_JOINS });
+			assert.throws(() => queryBuilderJoins.buildJoins(knex, model, params), { code: QueryBuilderError.codes.INVALID_JOINS });
 
 			joinKnexMethods.forEach(method => {
 				assert.equal(knex[method].called, false);
@@ -136,7 +149,9 @@ describe('Build Joins', () => {
 				joins: 'foo'
 			};
 
-			assert.throws(() => QueryBuilderJoins.buildJoins(knex, model, params), { code: QueryBuilderError.codes.INVALID_JOINS });
+			makeQueryBuilder(model);
+
+			assert.throws(() => queryBuilderJoins.buildJoins(knex, model, params), { code: QueryBuilderError.codes.INVALID_JOINS });
 		});
 		it('Should throws Error if \'params.joins\' passed but join definition missing', () => {
 			model = makeModel({
@@ -146,7 +161,9 @@ describe('Build Joins', () => {
 				joins: ['foo']
 			};
 
-			assert.throws(() => QueryBuilderJoins.buildJoins(knex, model, params), { code: QueryBuilderError.codes.INVALID_JOINS });
+			makeQueryBuilder(model);
+
+			assert.throws(() => queryBuilderJoins.buildJoins(knex, model, params), { code: QueryBuilderError.codes.INVALID_JOINS });
 		});
 		it('Should throws Error if \'params.joins\' and join definition join key does not match', () => {
 			model = makeModel({
@@ -157,7 +174,9 @@ describe('Build Joins', () => {
 				joins: ['foo']
 			};
 
-			assert.throws(() => QueryBuilderJoins.buildJoins(knex, model, params), { code: QueryBuilderError.codes.INVALID_JOINS });
+			makeQueryBuilder(model);
+
+			assert.throws(() => queryBuilderJoins.buildJoins(knex, model, params), { code: QueryBuilderError.codes.INVALID_JOINS });
 		});
 		it('Should throws Error if join definition is invalid', () => {
 			model = makeModel({
@@ -173,7 +192,9 @@ describe('Build Joins', () => {
 				joins: ['joinA', 'joinA', 'joinC', 'joinD']
 			};
 
-			assert.throws(() => QueryBuilderJoins.buildJoins(knex, model, params), { code: QueryBuilderError.codes.INVALID_JOINS });
+			makeQueryBuilder(model);
+
+			assert.throws(() => queryBuilderJoins.buildJoins(knex, model, params), { code: QueryBuilderError.codes.INVALID_JOINS });
 		});
 		it('Should throws Error if \'alias\' is missing in join definition', () => {
 			model = makeModel({
@@ -184,7 +205,9 @@ describe('Build Joins', () => {
 				joins: ['joinA']
 			};
 
-			assert.throws(() => QueryBuilderJoins.buildJoins(knex, model, params), { code: QueryBuilderError.codes.INVALID_JOINS });
+			makeQueryBuilder(model);
+
+			assert.throws(() => queryBuilderJoins.buildJoins(knex, model, params), { code: QueryBuilderError.codes.INVALID_JOINS });
 		});
 		it('Should throws Error if \'method\' is missing in join definition', () => {
 			model = makeModel({
@@ -195,7 +218,9 @@ describe('Build Joins', () => {
 				joins: ['joinA']
 			};
 
-			assert.throws(() => QueryBuilderJoins.buildJoins(knex, model, params), { code: QueryBuilderError.codes.INVALID_JOINS });
+			makeQueryBuilder(model);
+
+			assert.throws(() => queryBuilderJoins.buildJoins(knex, model, params), { code: QueryBuilderError.codes.INVALID_JOINS });
 		});
 		it('Should throws Error if \'method\' is invalid in join definition', () => {
 			model = makeModel({
@@ -206,7 +231,9 @@ describe('Build Joins', () => {
 				joins: ['joinA']
 			};
 
-			assert.throws(() => QueryBuilderJoins.buildJoins(knex, model, params), { code: QueryBuilderError.codes.INVALID_JOINS });
+			makeQueryBuilder(model);
+
+			assert.throws(() => queryBuilderJoins.buildJoins(knex, model, params), { code: QueryBuilderError.codes.INVALID_JOINS });
 		});
 		it('Should throws Error if \'on\' and \'orOn\' is missing in join definition', () => {
 			model = makeModel({
@@ -217,7 +244,9 @@ describe('Build Joins', () => {
 				joins: ['joinA']
 			};
 
-			assert.throws(() => QueryBuilderJoins.buildJoins(knex, model, params), { code: QueryBuilderError.codes.INVALID_JOINS });
+			makeQueryBuilder(model);
+
+			assert.throws(() => queryBuilderJoins.buildJoins(knex, model, params), { code: QueryBuilderError.codes.INVALID_JOINS });
 		});
 		it('Should throws Error if \'on\' and \'orOn\' are invalid in join definition', () => {
 			const invalidOns = [
@@ -247,14 +276,18 @@ describe('Build Joins', () => {
 					joins: ['tableA']
 				};
 
-				assert.throws(() => QueryBuilderJoins.buildJoins(knex, model, params));
+				makeQueryBuilder(model);
+
+				assert.throws(() => queryBuilderJoins.buildJoins(knex, model, params));
 
 				model = makeModel({
 					fields: { foo: true, bar: true },
 					joins: { tableA: { alias: 'j', orOn: invalidOn } }
 				});
 
-				assert.throws(() => QueryBuilderJoins.buildJoins(knex, model, params));
+				makeQueryBuilder(model);
+
+				assert.throws(() => queryBuilderJoins.buildJoins(knex, model, params));
 			});
 		});
 	});
@@ -267,7 +300,9 @@ describe('Build Joins', () => {
 
 			params = param;
 
-			QueryBuilderJoins.buildJoins(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderJoins.buildJoins(knex, model, params);
 
 			assert(knex[joinMethod].calledOnce);
 			assert.equal(knex[joinMethod].args[0][0], joinTable);

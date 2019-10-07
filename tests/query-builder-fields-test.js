@@ -47,7 +47,18 @@ const makeModel = ({
 
 	}
 
-	return new FakeModel();
+	return new FakeModel({
+		id: true
+	});
+};
+
+let queryBuilderFields;
+
+const makeQueryBuilder = model => {
+	if(!model)
+		queryBuilderFields = new QueryBuilderFields(makeModel({}));
+	else
+		queryBuilderFields = new QueryBuilderFields(model);
 };
 
 describe('Build Group', () => {
@@ -59,6 +70,7 @@ describe('Build Group', () => {
 
 		beforeEach(() => {
 			knex = makeKnex();
+			makeQueryBuilder();
 		});
 
 		afterEach(() => {
@@ -67,13 +79,13 @@ describe('Build Group', () => {
 
 		it('should return QueryBuilderError if no params is passed', () => {
 
-			assert.throws(() => QueryBuilderFields.buildSelect(), { code: QueryBuilderError.codes.INVALID_KNEX });
+			assert.throws(() => queryBuilderFields.buildSelect(), { code: QueryBuilderError.codes.INVALID_KNEX });
 
 		});
 
 		it('should return QueryBuilderError if no Model is passed', () => {
 
-			assert.throws(() => QueryBuilderFields.buildSelect(knex), { code: QueryBuilderError.codes.INVALID_MODEL });
+			assert.throws(() => queryBuilderFields.buildSelect(knex), { code: QueryBuilderError.codes.INVALID_MODEL });
 
 		});
 
@@ -83,6 +95,7 @@ describe('Build Group', () => {
 
 		beforeEach(() => {
 			knex = makeKnex();
+			makeQueryBuilder();
 		});
 
 		afterEach(() => {
@@ -97,7 +110,9 @@ describe('Build Group', () => {
 
 			params = { fields: false, count: true };
 
-			QueryBuilderFields.buildSelect(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFields.buildSelect(knex, model, params);
 
 			assert(knex.select.notCalled);
 		});
@@ -108,7 +123,7 @@ describe('Build Group', () => {
 
 			params = {};
 
-			QueryBuilderFields.buildSelect(knex, model, params);
+			queryBuilderFields.buildSelect(knex, model, params);
 
 			assert(knex.count.notCalled);
 		});
@@ -121,7 +136,9 @@ describe('Build Group', () => {
 
 			params = { fields: 'id' };
 
-			assert.throws(() => QueryBuilderFields.buildSelect(knex, model, params), { code: QueryBuilderError.codes.INVALID_FIELDS });
+			makeQueryBuilder(model);
+
+			assert.throws(() => queryBuilderFields.buildSelect(knex, model, params), { code: QueryBuilderError.codes.INVALID_FIELDS });
 
 			assert(knex.select.notCalled);
 		});
@@ -134,7 +151,9 @@ describe('Build Group', () => {
 
 			params = { fields: ['bar'] };
 
-			assert.throws(() => QueryBuilderFields.buildSelect(knex, model, params), { code: QueryBuilderError.codes.INVALID_FIELDS });
+			makeQueryBuilder(model);
+
+			assert.throws(() => queryBuilderFields.buildSelect(knex, model, params), { code: QueryBuilderError.codes.INVALID_FIELDS });
 
 			assert(knex.select.notCalled);
 		});
@@ -145,7 +164,7 @@ describe('Build Group', () => {
 
 			params = { fields: ['id'] };
 
-			assert.throws(() => QueryBuilderFields.buildSelect(knex, model, params), { code: QueryBuilderError.codes.INVALID_FIELDS });
+			assert.throws(() => queryBuilderFields.buildSelect(knex, model, params), { code: QueryBuilderError.codes.INVALID_FIELDS });
 
 			assert(!knex.select.called);
 		});
@@ -156,7 +175,7 @@ describe('Build Group', () => {
 
 			params = { fields: [] };
 
-			assert.throws(() => QueryBuilderFields.buildSelect(knex, model, params), { code: QueryBuilderError.codes.NOTHING_SELECT });
+			assert.throws(() => queryBuilderFields.buildSelect(knex, model, params), { code: QueryBuilderError.codes.NOTHING_SELECT });
 
 			assert(!knex.select.called);
 		});
@@ -167,7 +186,7 @@ describe('Build Group', () => {
 
 			params = { fields: false };
 
-			assert.throws(() => QueryBuilderFields.buildSelect(knex, model, params), { code: QueryBuilderError.codes.NOTHING_SELECT });
+			assert.throws(() => queryBuilderFields.buildSelect(knex, model, params), { code: QueryBuilderError.codes.NOTHING_SELECT });
 
 			assert(!knex.select.called);
 		});
@@ -178,7 +197,7 @@ describe('Build Group', () => {
 
 			params = { count: 'unknown' };
 
-			assert.throws(() => QueryBuilderFields.buildSelect(knex, model, params), { code: QueryBuilderError.codes.INVALID_FIELDS });
+			assert.throws(() => queryBuilderFields.buildSelect(knex, model, params), { code: QueryBuilderError.codes.INVALID_FIELDS });
 
 			assert(knex.count.notCalled);
 		});
@@ -200,7 +219,7 @@ describe('Build Group', () => {
 
 				params = { count: invalidCount };
 
-				assert.throws(() => QueryBuilderFields.buildSelect(knex, model, params), { code: QueryBuilderError.codes.INVALID_SELECT_FUNCTION });
+				assert.throws(() => queryBuilderFields.buildSelect(knex, model, params), { code: QueryBuilderError.codes.INVALID_SELECT_FUNCTION });
 
 				assert(knex.count.notCalled);
 			});
@@ -222,7 +241,9 @@ describe('Build Group', () => {
 				fields: ['isActive']
 			};
 
-			assert.throws(() => QueryBuilderFields.buildSelect(knex, model, params), { code: QueryBuilderError.codes.INVALID_FIELDS });
+			makeQueryBuilder(model);
+
+			assert.throws(() => queryBuilderFields.buildSelect(knex, model, params), { code: QueryBuilderError.codes.INVALID_FIELDS });
 
 			assert(!knex.select.called);
 		});
@@ -247,7 +268,9 @@ describe('Build Group', () => {
 
 			params = { fields: ['id'] };
 
-			QueryBuilderFields.buildSelect(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFields.buildSelect(knex, model, params);
 
 			assert(knex.select.called);
 			assert.deepEqual(knex.select.args[0][0], { id: 't.id' });
@@ -261,7 +284,9 @@ describe('Build Group', () => {
 
 			params = { fields: ['foo'] };
 
-			QueryBuilderFields.buildSelect(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFields.buildSelect(knex, model, params);
 
 			assert(knex.select.called);
 			assert.deepEqual(knex.select.args[0][0], { foo: 't.bar' });
@@ -275,7 +300,9 @@ describe('Build Group', () => {
 
 			params = { fields: ['foo'] };
 
-			QueryBuilderFields.buildSelect(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFields.buildSelect(knex, model, params);
 
 			assert(knex.select.called);
 			assert.deepEqual(knex.select.args[0][0], { greatAlias: 't.bar' });
@@ -287,7 +314,7 @@ describe('Build Group', () => {
 
 			params = {};
 
-			QueryBuilderFields.buildSelect(knex, model, params);
+			queryBuilderFields.buildSelect(knex, model, params);
 
 			assert(knex.select.calledOnce);
 			assert.deepEqual(knex.select.args[0][0], 't.*');
@@ -301,7 +328,9 @@ describe('Build Group', () => {
 
 			params = {};
 
-			QueryBuilderFields.buildSelect(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFields.buildSelect(knex, model, params);
 
 			assert(knex.select.calledOnce);
 			assert.deepEqual(knex.select.args[0][0], 't.*');
@@ -316,7 +345,9 @@ describe('Build Group', () => {
 
 			params = {};
 
-			QueryBuilderFields.buildSelect(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFields.buildSelect(knex, model, params);
 
 			assert(knex.select.calledTwice);
 
@@ -336,7 +367,9 @@ describe('Build Group', () => {
 
 			params = { noFlags: true };
 
-			QueryBuilderFields.buildSelect(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFields.buildSelect(knex, model, params);
 
 			assert(knex.select.calledOnce);
 
@@ -358,7 +391,9 @@ describe('Build Group', () => {
 
 			params = { fields: ['isActive'] };
 
-			QueryBuilderFields.buildSelect(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFields.buildSelect(knex, model, params);
 
 			assert(knex.select.called);
 			assert(knex.raw.called);
@@ -382,12 +417,18 @@ describe('Build Group', () => {
 				fields: ['status']
 			};
 
-			QueryBuilderFields.buildSelect(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderFields.buildSelect(knex, model, params);
 
 			assert(knex.select.calledOnce);
 		});
 
 		describe('select Functions', () => {
+
+			beforeEach(() => {
+				makeQueryBuilder();
+			});
 
 			const selectFunctions = ['count', 'min', 'max', 'sum', 'avg'];
 
@@ -399,7 +440,7 @@ describe('Build Group', () => {
 
 					params = { [selectFunction]: true };
 
-					QueryBuilderFields.buildSelect(knex, model, params);
+					queryBuilderFields.buildSelect(knex, model, params);
 
 					assert(knex[selectFunction].calledOnce);
 					assert.deepEqual(knex[selectFunction].args[0], [`* as ${selectFunction}`]);
@@ -414,7 +455,9 @@ describe('Build Group', () => {
 
 					params = { [selectFunction]: 'id' };
 
-					QueryBuilderFields.buildSelect(knex, model, params);
+					makeQueryBuilder(model);
+
+					queryBuilderFields.buildSelect(knex, model, params);
 
 					assert(knex[selectFunction].calledOnce);
 					assert.deepEqual(knex[selectFunction].args[0], [`t.id as ${selectFunction}`]);
@@ -429,7 +472,9 @@ describe('Build Group', () => {
 
 					params = { [selectFunction]: { field: 'id' } };
 
-					QueryBuilderFields.buildSelect(knex, model, params);
+					makeQueryBuilder(model);
+
+					queryBuilderFields.buildSelect(knex, model, params);
 
 					assert(knex[selectFunction].calledOnce);
 					assert.deepEqual(knex[selectFunction].args[0], [`t.id as ${selectFunction}`]);
@@ -442,7 +487,7 @@ describe('Build Group', () => {
 
 					params = { [selectFunction]: { alias: `${selectFunction}Alias` } };
 
-					QueryBuilderFields.buildSelect(knex, model, params);
+					queryBuilderFields.buildSelect(knex, model, params);
 
 					assert(knex[selectFunction].calledOnce);
 					assert.deepEqual(knex[selectFunction].args[0], [`* as ${selectFunction}Alias`]);
@@ -457,7 +502,9 @@ describe('Build Group', () => {
 
 					params = { [selectFunction]: { field: 'id', alias: `${selectFunction}Alias` } };
 
-					QueryBuilderFields.buildSelect(knex, model, params);
+					makeQueryBuilder(model);
+
+					queryBuilderFields.buildSelect(knex, model, params);
 
 					assert(knex[selectFunction].calledOnce);
 					assert.deepEqual(knex[selectFunction].args[0], [`t.id as ${selectFunction}Alias`]);

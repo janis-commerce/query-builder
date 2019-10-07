@@ -50,6 +50,15 @@ const makeModel = ({
 	return new FakeModel();
 };
 
+let queryBuilderGroup;
+
+const makeQueryBuilder = model => {
+	if(!model)
+		queryBuilderGroup = new QueryBuilderGroup(makeModel({}));
+	else
+		queryBuilderGroup = new QueryBuilderGroup(model);
+};
+
 describe('Build Group', () => {
 	let knex;
 	let model;
@@ -58,6 +67,7 @@ describe('Build Group', () => {
 	context('when no Knex function or Model is passed', () => {
 
 		beforeEach(() => {
+			makeQueryBuilder();
 			knex = makeKnex();
 		});
 
@@ -67,13 +77,13 @@ describe('Build Group', () => {
 
 		it('should return QueryBuilderError if no params is passed', () => {
 
-			assert.throws(() => QueryBuilderGroup.buildGroup(), { code: QueryBuilderError.codes.INVALID_KNEX });
+			assert.throws(() => queryBuilderGroup.buildGroup(), { code: QueryBuilderError.codes.INVALID_KNEX });
 
 		});
 
 		it('should return QueryBuilderError if no Model is passed', () => {
 
-			assert.throws(() => QueryBuilderGroup.buildGroup(knex), { code: QueryBuilderError.codes.INVALID_MODEL });
+			assert.throws(() => queryBuilderGroup.buildGroup(knex), { code: QueryBuilderError.codes.INVALID_MODEL });
 
 		});
 
@@ -82,6 +92,7 @@ describe('Build Group', () => {
 	context('when params are missing or wrong', () => {
 
 		beforeEach(() => {
+			makeQueryBuilder();
 			knex = makeKnex();
 		});
 
@@ -93,7 +104,7 @@ describe('Build Group', () => {
 			params = {};
 			model = makeModel({});
 
-			QueryBuilderGroup.buildGroup(knex, model, params);
+			queryBuilderGroup.buildGroup(knex, model, params);
 
 			assert.equal(knex.groupBy.called, false);
 		});
@@ -102,7 +113,7 @@ describe('Build Group', () => {
 			params = { group: { foo: 'bar' } };
 			model = makeModel({});
 
-			assert.throws(() => QueryBuilderGroup.buildGroup(knex, model, params), { code: QueryBuilderError.codes.INVALID_GROUPS });
+			assert.throws(() => queryBuilderGroup.buildGroup(knex, model, params), { code: QueryBuilderError.codes.INVALID_GROUPS });
 			assert.equal(knex.groupBy.called, false);
 		});
 
@@ -114,7 +125,9 @@ describe('Build Group', () => {
 				fields: { foo: true }
 			});
 
-			QueryBuilderGroup.buildGroup(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderGroup.buildGroup(knex, model, params);
 
 			assert.equal(knex.groupBy.called, false);
 		});
@@ -127,7 +140,9 @@ describe('Build Group', () => {
 				fields: { foo: true }
 			});
 
-			assert.throws(() => QueryBuilderGroup.buildGroup(knex, model, params), { code: QueryBuilderError.codes.INVALID_GROUPS });
+			makeQueryBuilder(model);
+
+			assert.throws(() => queryBuilderGroup.buildGroup(knex, model, params), { code: QueryBuilderError.codes.INVALID_GROUPS });
 
 		});
 
@@ -139,7 +154,9 @@ describe('Build Group', () => {
 				fields: { foo: true }
 			});
 
-			assert.throws(() => QueryBuilderGroup.buildGroup(knex, model, params), { code: QueryBuilderError.codes.INVALID_FIELDS });
+			makeQueryBuilder(model);
+
+			assert.throws(() => queryBuilderGroup.buildGroup(knex, model, params), { code: QueryBuilderError.codes.INVALID_FIELDS });
 		});
 
 		it('Should throws Error if valid \'params.group\' passed but unknown field in an array', () => {
@@ -150,7 +167,9 @@ describe('Build Group', () => {
 				fields: { foo: true }
 			});
 
-			assert.throws(() => QueryBuilderGroup.buildGroup(knex, model, params), { code: QueryBuilderError.codes.INVALID_FIELDS });
+			makeQueryBuilder(model);
+
+			assert.throws(() => queryBuilderGroup.buildGroup(knex, model, params), { code: QueryBuilderError.codes.INVALID_FIELDS });
 		});
 
 		it('Should throws Error if \'params.group\' as an empty array', () => {
@@ -161,7 +180,9 @@ describe('Build Group', () => {
 				fields: { foo: true }
 			});
 
-			assert.throws(() => QueryBuilderGroup.buildGroup(knex, model, params), { code: QueryBuilderError.codes.INVALID_GROUPS });
+			makeQueryBuilder(model);
+
+			assert.throws(() => queryBuilderGroup.buildGroup(knex, model, params), { code: QueryBuilderError.codes.INVALID_GROUPS });
 		});
 
 	});
@@ -184,7 +205,9 @@ describe('Build Group', () => {
 				group: 'foo'
 			};
 
-			QueryBuilderGroup.buildGroup(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderGroup.buildGroup(knex, model, params);
 
 			assert(knex.groupBy.calledOnce);
 			assert.deepEqual(knex.groupBy.args[0], ['t.foo']);
@@ -198,7 +221,9 @@ describe('Build Group', () => {
 				group: ['foo', 'foo', 'bar'] // arrayUnique for avoid repetition
 			};
 
-			QueryBuilderGroup.buildGroup(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderGroup.buildGroup(knex, model, params);
 
 			assert(knex.groupBy.calledTwice);
 			assert.deepEqual(knex.groupBy.args[0], ['t.foo']);
@@ -217,7 +242,9 @@ describe('Build Group', () => {
 				group: 'isActive'
 			};
 
-			QueryBuilderGroup.buildGroup(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderGroup.buildGroup(knex, model, params);
 
 			assert(knex.groupByRaw.calledOnce);
 			assert.deepEqual(knex.groupByRaw.args[0], ['(t.status & 1)']);

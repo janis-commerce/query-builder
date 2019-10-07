@@ -49,6 +49,14 @@ const makeModel = ({
 	return new FakeModel();
 };
 
+let queryBuilderOrder;
+
+const makeQueryBuilder = model => {
+	if(!model)
+		queryBuilderOrder = new QueryBuilderOrder(makeModel({}));
+	else
+		queryBuilderOrder = new QueryBuilderOrder(model);
+};
 
 describe('Build Order', () => {
 	let knex;
@@ -58,6 +66,7 @@ describe('Build Order', () => {
 	context('when no Knex function or Model is passed', () => {
 
 		beforeEach(() => {
+			makeQueryBuilder();
 			knex = makeKnex();
 		});
 
@@ -67,13 +76,13 @@ describe('Build Order', () => {
 
 		it('should return QueryBuilderError if no params is passed', () => {
 
-			assert.throws(() => QueryBuilderOrder.buildOrder(), { code: QueryBuilderError.codes.INVALID_KNEX });
+			assert.throws(() => queryBuilderOrder.buildOrder(), { code: QueryBuilderError.codes.INVALID_KNEX });
 
 		});
 
 		it('should return QueryBuilderError if no Model is passed', () => {
 
-			assert.throws(() => QueryBuilderOrder.buildOrder(knex), { code: QueryBuilderError.codes.INVALID_MODEL });
+			assert.throws(() => queryBuilderOrder.buildOrder(knex), { code: QueryBuilderError.codes.INVALID_MODEL });
 
 		});
 
@@ -82,6 +91,7 @@ describe('Build Order', () => {
 	context('when params are missing or wrong', () => {
 
 		beforeEach(() => {
+			makeQueryBuilder();
 			knex = makeKnex();
 		});
 
@@ -94,7 +104,7 @@ describe('Build Order', () => {
 			model = makeModel({});
 			params = {};
 
-			QueryBuilderOrder.buildOrder(knex, model, params);
+			queryBuilderOrder.buildOrder(knex, model, params);
 
 			assert.equal(knex.orderBy.called, false);
 
@@ -107,7 +117,7 @@ describe('Build Order', () => {
 				order: 'id'
 			};
 
-			assert.throws(() => QueryBuilderOrder.buildOrder(knex, model, params), { code: QueryBuilderError.codes.INVALID_FIELDS });
+			assert.throws(() => queryBuilderOrder.buildOrder(knex, model, params), { code: QueryBuilderError.codes.INVALID_FIELDS });
 			assert.equal(knex.orderBy.called, false);
 
 		});
@@ -121,7 +131,9 @@ describe('Build Order', () => {
 				order: ['id']
 			};
 
-			assert.throws(() => QueryBuilderOrder.buildOrder(knex, model, params), { code: QueryBuilderError.codes.INVALID_ORDERS });
+			makeQueryBuilder(model);
+
+			assert.throws(() => queryBuilderOrder.buildOrder(knex, model, params), { code: QueryBuilderError.codes.INVALID_ORDERS });
 		});
 
 		it('Should trhows Error if invalid direction in order is passed', () => {
@@ -133,7 +145,9 @@ describe('Build Order', () => {
 				order: { id: 'foo' }
 			};
 
-			assert.throws(() => QueryBuilderOrder.buildOrder(knex, model, params), { code: QueryBuilderError.codes.INVALID_ORDERS });
+			makeQueryBuilder(model);
+
+			assert.throws(() => queryBuilderOrder.buildOrder(knex, model, params), { code: QueryBuilderError.codes.INVALID_ORDERS });
 		});
 
 		it('Should trhows Error if field is not present in definition', () => {
@@ -145,7 +159,9 @@ describe('Build Order', () => {
 				order: 'bar'
 			};
 
-			assert.throws(() => QueryBuilderOrder.buildOrder(knex, model, params), { code: QueryBuilderError.codes.INVALID_FIELDS });
+			makeQueryBuilder(model);
+
+			assert.throws(() => queryBuilderOrder.buildOrder(knex, model, params), { code: QueryBuilderError.codes.INVALID_FIELDS });
 		});
 	});
 
@@ -168,7 +184,9 @@ describe('Build Order', () => {
 				order: 'name'
 			};
 
-			QueryBuilderOrder.buildOrder(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderOrder.buildOrder(knex, model, params);
 
 			assert.equal(knex.orderBy.called, true);
 			assert.equal(knex.orderBy.calledOnce, true);
@@ -185,7 +203,9 @@ describe('Build Order', () => {
 				order: { code: 'desc' }
 			};
 
-			QueryBuilderOrder.buildOrder(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderOrder.buildOrder(knex, model, params);
 
 			assert.equal(knex.orderBy.called, true);
 			assert.equal(knex.orderBy.calledOnce, true);
@@ -201,7 +221,9 @@ describe('Build Order', () => {
 				order: { name: 'desc', id: 'asc' }
 			};
 
-			QueryBuilderOrder.buildOrder(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderOrder.buildOrder(knex, model, params);
 
 			assert.equal(knex.orderBy.called, true);
 			assert.equal(knex.orderBy.calledTwice, true);
@@ -222,7 +244,9 @@ describe('Build Order', () => {
 				order: 'isActive'
 			};
 
-			QueryBuilderOrder.buildOrder(knex, model, params);
+			makeQueryBuilder(model);
+
+			queryBuilderOrder.buildOrder(knex, model, params);
 
 			assert.equal(knex.orderByRaw.called, true);
 			assert.equal(knex.orderByRaw.calledOnce, true);
@@ -230,7 +254,6 @@ describe('Build Order', () => {
 			assert.deepEqual(knex.orderByRaw.args[0], ['(t.status & 1) asc']);
 
 		});
-
 
 	});
 
