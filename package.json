@@ -25,13 +25,13 @@
     "@janiscommerce/logger": "^1.0.2"
   },
   "devDependencies": {
-    "eslint": "^5.16.0",
+    "eslint": "^7.13.0",
     "eslint-config-airbnb-base": "^13.2.0",
-    "eslint-plugin-import": "^2.18.2",
-    "husky": "^2.7.0",
-    "mocha": "^5.2.0",
-    "nyc": "^14.1.0",
-    "sinon": "^7.5.0"
+    "eslint-plugin-import": "^2.22.1",
+    "husky": "^4.3.0",
+    "mocha": "^8.2.1",
+    "nyc": "^15.1.0",
+    "sinon": "^9.2.1"
   },
   "files": [
     "lib/"

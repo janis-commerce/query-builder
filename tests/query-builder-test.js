@@ -768,7 +768,7 @@ describe('QueryBuilder', () => {
 
 		it('Should return knexStatement', async () => {
 
-			const fields = { foo: true };
+			const fields = { foo: true, id: true };
 
 			model = makeModel({ fields });
 			knex.raw = sandbox.stub().returns(makeKnexRawShowColumns(fields, true));
@@ -777,7 +777,7 @@ describe('QueryBuilder', () => {
 
 			const executeSpy = sandbox.spy(queryBuilder, 'save');
 
-			await queryBuilder.save({ foo: 1 });
+			await queryBuilder.save({ foo: 1, id: 1 });
 
 			assert(executeSpy.returnValues[0] instanceof Promise);
 		});

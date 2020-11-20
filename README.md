@@ -1,10 +1,11 @@
 # query-builder
 
-[![Build Status](https://travis-ci.org/janis-commerce/query-builder.svg?master)](https://travis-ci.org/janis-commerce/query-builder)
+![Build Status](https://github.com/janis-commerce/query-builder/workflows/Build%20Status/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/janis-commerce/query-builder/badge.svg?branch=master)](https://coveralls.io/github/janis-commerce/query-builder?branch=master)
+[![npm version](https://badge.fury.io/js/%40janiscommerce%2Fquery-builder.svg)](https://www.npmjs.com/package/@janiscommerce/query-builder)
 
 Prepare and execute SELECT, INSERT, UPDATE, REMOVE queries from SQL database.
- 
+
 - - -
 
 ## Instalation
