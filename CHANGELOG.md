@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.3.7] - 2020-11-20
+### Fixed
+- Fix method `multiInsert` saving multiples rows.
+- add github actions
+
 ## [1.3.6] - 2019-10-08
 ### Fixed
 - static class helpers are now instanteable to avoid errors when using from multiple origins in the same execution.
