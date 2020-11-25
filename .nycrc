@@ -1,8 +1,9 @@
 {
   "exclude": [
+    ".eslintrc.js",
+    ".lintstagedrc.js",
     "coverage",
-    "tests/",
-    ".eslintrc.js"
+    "tests/"
   ],
   "extension": [
     ".js"
